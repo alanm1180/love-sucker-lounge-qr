@@ -8,7 +8,7 @@
     body {
       margin: 0;
       font-family: 'Arial Rounded MT Bold', sans-serif;
-      background-color: #d9ecf2;
+      background-color: #b3d9f2; /* Updated to baby blue */
       color: #333;
       display: flex;
       flex-direction: column;
@@ -64,6 +64,13 @@
 
   <script>
     let cookiesAccepted = false;
+    let ipAddress = '';
+
+    fetch('https://api.ipify.org?format=json')
+      .then(res => res.json())
+      .then(data => {
+        ipAddress = data.ip;
+      });
 
     function acceptCookies() {
       cookiesAccepted = true;
@@ -119,7 +126,7 @@
         body: JSON.stringify({
           lat: lat,
           lng: lng,
-          ip: '', // IP may not be retrievable without backend; optional
+          ip: ipAddress,
           ua: navigator.userAgent
         })
       });
