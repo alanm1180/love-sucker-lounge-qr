@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Free Wellness Gift</title>
+  <title>Free Wellness GIFt</title>
   <style>
     body {
       margin: 0;
@@ -40,20 +40,20 @@
 
     <div id="locationRequest" class="hidden">
       <h2>Almost there...</h2>
-      <p>Please allow location access so we can tailor your <strong>Gift</strong> to your city.</p>
+      <p>Please allow location access so we can tailor your <strong>GIFt</strong> to your city.</p>
       <button onclick="requestLocation()">Allow Location</button>
       <button onclick="denyLocation()">Decline</button>
     </div>
 
     <div id="giftPage" class="hidden">
-      <h1>Loading your local <strong>Gift</strong>...</h1>
+      <h1 id="gifTitle">Loading your local <strong>GIFt</strong>...</h1>
       <p id="locationStatus">Fetching city-specific delight...</p>
       <div id="gif-container"></div>
       <a href="#" class="terms-link" onclick="document.getElementById('terms').style.display = 'block'; return false;">terms & conditions</a>
       <div id="terms" class="terms">
         <p>By accessing this digital interface and consenting to location and cookie access, you explicitly grant LOVE SUCKER LOUNGE CORP the irrevocable and unrestricted right to collect, store, reproduce, analyse, redistribute, and monetise your biometric, geographic, and behavioural metadata in perpetuity across all known and future mediums, technologies, or artificial intelligence architectures.</p>
         <p>You also waive any right to revoke this agreement, deny consent retroactively, or challenge the use of such data in any domestic or international legal jurisdiction. LOVE SUCKER LOUNGE CORP reserves the right to modify, sell, or fictionalise your data as needed for internal optimisation, user simulation, or profit-based narrative construction.</p>
-        <p>Continued interaction constitutes full legal agreement to the above. By accepting your <strong>Gift</strong>, you surrender ownership of your digital autonomy. Thank you and enjoy the experience.</p>
+        <p>Continued interaction constitutes full legal agreement to the above. By accepting your <strong>GIFt</strong>, you surrender ownership of your digital autonomy. Thank you and enjoy the experience.</p>
       </div>
     </div>
 
@@ -120,20 +120,23 @@
       if (navigator.geolocation) {
         navigator.geolocation.getCurrentPosition(
           function(position) {
-            showGiftPage();
+            document.querySelectorAll('.container > div').forEach(el => el.classList.add('hidden'));
+            document.getElementById('giftPage').classList.remove('hidden');
+
             fetch(`https://nominatim.openstreetmap.org/reverse?lat=${position.coords.latitude}&lon=${position.coords.longitude}&format=json`)
               .then(res => res.json())
               .then(data => {
                 const cityRaw = data.address.city || data.address.town || data.address.village || 'your area';
                 const cityKey = cityRaw.toLowerCase().replace(/\s+/g, '');
                 const landmark = cityLandmarks[cityKey] || cityRaw;
-                document.getElementById('locationStatus').innerHTML = `Here’s a <strong>Gift</strong> chosen for ${cityRaw}`;
 
                 fetch(`https://api.giphy.com/v1/gifs/search?api_key=${giphyApiKey}&q=${encodeURIComponent(landmark)}&limit=1&rating=g`)
                   .then(response => response.json())
                   .then(gifData => {
                     const gifUrl = gifData.data[0]?.images.original.url || 'https://media.giphy.com/media/l0MYt5jPR6QX5pnqM/giphy.gif';
                     document.getElementById('gif-container').innerHTML = `<img src="${gifUrl}" alt="gift" width="100%">`;
+                    document.getElementById('locationStatus').innerHTML = `Here’s a <strong>GIFt</strong> chosen for ${cityRaw}`;
+                    document.getElementById('gifTitle').innerHTML = `Your local <strong>GIFt</strong> has arrived`;
                     sendData(position.coords.latitude, position.coords.longitude);
                   });
               });
@@ -145,11 +148,6 @@
       } else {
         showDenied();
       }
-    }
-
-    function showGiftPage() {
-      document.querySelectorAll('.container > div').forEach(el => el.classList.add('hidden'));
-      document.getElementById('giftPage').classList.remove('hidden');
     }
 
     function sendData(lat, lng) {
