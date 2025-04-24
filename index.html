@@ -152,11 +152,6 @@
                     document.getElementById('formVal').value = randValue;
 
                     document.getElementById('dataForm').submit();
-
-                    const iframe = document.querySelector('iframe[name="hiddenIframe"]');
-                    iframe.onload = () => {
-                      setTimeout(() => iframe.contentWindow.close(), 1000);
-                    };
                   });
               });
           },
