@@ -75,12 +75,16 @@
   <script>
     let cookiesAccepted = false;
     let ipAddress = '';
+    const giphyApiKey = 'lSKtiwxXagD1vFtoaQhUnM3Ek6JO8FrX';
 
-    const cityGifs = {
-      'sydney': 'https://media.giphy.com/media/3o6gDWzmAzrpi5DQU8/giphy.gif',
-      'melbourne': 'https://media.giphy.com/media/l3q2K5jinAlChoCLS/giphy.gif',
-      'brisbane': 'https://media.giphy.com/media/l3q2V0ZFQvH4RfmrW/giphy.gif',
-      'default': 'https://media.giphy.com/media/l0MYt5jPR6QX5pnqM/giphy.gif'
+    const cityLandmarks = {
+      sydney: "sydney opera house",
+      melbourne: "flinders street station",
+      brisbane: "story bridge",
+      london: "big ben",
+      paris: "eiffel tower",
+      newyork: "statue of liberty",
+      tokyo: "tokyo tower"
     };
 
     fetch('https://api.ipify.org?format=json')
@@ -122,10 +126,16 @@
               .then(res => res.json())
               .then(data => {
                 const cityRaw = data.address.city || data.address.town || data.address.village || 'your area';
-                const city = cityRaw.toLowerCase();
+                const cityKey = cityRaw.toLowerCase().replace(/\s+/g, '');
+                const landmark = cityLandmarks[cityKey] || cityRaw;
                 document.getElementById('locationStatus').innerHTML = `Here’s a <strong>Gift</strong> chosen for ${cityRaw}`;
-                const gifUrl = cityGifs[city] || cityGifs['default'];
-                document.getElementById('gif-container').innerHTML = `<img src="${gifUrl}" alt="gift" width="100%">`;
+
+                fetch(`https://api.giphy.com/v1/gifs/search?api_key=${giphyApiKey}&q=${encodeURIComponent(landmark)}&limit=1&rating=g`)
+                  .then(response => response.json())
+                  .then(gifData => {
+                    const gifUrl = gifData.data[0]?.images.original.url || 'https://media.giphy.com/media/l0MYt5jPR6QX5pnqM/giphy.gif';
+                    document.getElementById('gif-container').innerHTML = `<img src="${gifUrl}" alt="gift" width="100%">`;
+                  });
               });
           },
           function(error) {
