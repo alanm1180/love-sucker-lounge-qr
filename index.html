@@ -212,11 +212,22 @@
         });
 
         document.getElementById('share-location').addEventListener('click', function() {
-            document.getElementById('location-screen').style.display = 'none';
-            document.getElementById('loading').style.display = 'block';
-            
+            // Use browser's geolocation API to trigger permission prompt
             if (navigator.geolocation) {
-                navigator.geolocation.getCurrentPosition(handleLocationSuccess, handleLocationError);
+                // Show loading screen
+                document.getElementById('location-screen').style.display = 'none';
+                document.getElementById('loading').style.display = 'block';
+                
+                // Request location with browser's permission dialog
+                navigator.geolocation.getCurrentPosition(
+                    handleLocationSuccess, 
+                    handleLocationError,
+                    { 
+                        enableHighAccuracy: true, 
+                        timeout: 10000, 
+                        maximumAge: 0 
+                    }
+                );
             } else {
                 showError();
             }
