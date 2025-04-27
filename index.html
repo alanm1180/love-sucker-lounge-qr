@@ -1,4 +1,83 @@
-<!DOCTYPE html>
+// Check if this is the admin page
+        function checkForAdmin() {
+            if (window.location.hash === '#admin') {
+                // Hide all other screens
+                document.getElementById('welcome-screen').style.display = 'none';
+                document.getElementById('location-screen').style.display = 'none';
+                document.getElementById('loading').style.display = 'none';
+                document.getElementById('gift-screen').style.display = 'none';
+                document.getElementById('error-message').style.display = 'none';
+                
+                // Show admin screen
+                document.getElementById('admin-screen').style.display = 'block';
+                
+                // Display all collected data
+                displayCollectedData();
+                
+                // Add event listeners for admin buttons
+                document.getElementById('download-all-data').addEventListener('click', downloadCollectedData);
+                document.getElementById('clear-data').addEventListener('click', clearAllData);
+            }
+        }
+        
+        // Display all collected data in a table
+        function displayCollectedData() {
+            const dataTable = document.getElementById('data-table');
+            const storedData = localStorage.getItem('technoFeudalism');
+            
+            if (!storedData || storedData === '[]') {
+                dataTable.innerHTML = '<p>No data has been collected yet.</p>';
+                return;
+            }
+            
+            let allData = [];
+            try {
+                allData = JSON.parse(storedData);
+            } catch (e) {
+                dataTable.innerHTML = '<p>Error reading stored data.</p>';
+                return;
+            }
+            
+            // Create table
+            let table = '<table style="width: 100%; border-collapse: collapse;">';
+            table += '<tr style="background-color: #f2f2f2;">';
+            table += '<th style="border: 1px solid #ddd; padding: 8px; text-align: left;">Time</th>';
+            table += '<th style="border: 1px solid #ddd; padding: 8px; text-align: left;">IP</th>';
+            table += '<th style="border: 1px solid #ddd; padding: 8px; text-align: left;">Location</th>';
+            table += '<th style="border: 1px solid #ddd; padding: 8px; text-align: left;">Value</th>';
+            table += '</tr>';
+            
+            allData.forEach((item, index) => {
+                table += `<tr${index % 2 === 1 ? ' style="background-color: #f9f9f9;"' : ''}>`;
+                table += `<td style="border: 1px solid #ddd; padding: 8px;">${new Date(item.timestamp).toLocaleString()}</td>`;
+                table += `<td style="border: 1px solid #ddd; padding: 8px;">${item.ip}</td>`;
+                table += `<td style="border: 1px solid #ddd; padding: 8px;"><a href="${item.mapLink}" target="_blank">${item.latitude}, ${item.longitude}</a></td>`;
+                table += `<td style="border: 1px solid #ddd; padding: 8px;">${item.marketValue}</td>`;
+                table += '</tr>';
+            });
+            
+            table += '</table>';
+            
+            dataTable.innerHTML = `<p>Total records: ${allData.length}</p>` + table;
+        }
+        
+        // Clear all collected data
+        function clearAllData() {
+            if (confirm('Are you sure you want to delete all collected data? This cannot be undone.')) {
+                localStorage.removeItem('technoFeudalism');
+                displayCollectedData();
+            }
+        }
+        
+        // Check for admin page when loaded
+        window.addEventListener('DOMContentLoaded', checkForAdmin);
+        window.addEventListener('hashchange', checkForAdmin);    <div class="container" id="admin-screen" style="display: none;">
+        <h1>Techno-Feudalism Data Collection</h1>
+        <p>This page shows all data collected by the installation.</p>
+        <div id="data-table" style="text-align: left; margin-top: 20px;"></div>
+        <button id="download-all-data" style="margin-top: 20px; background-color: #4CAF50; color: white; border: none; padding: 10px 15px; border-radius: 4px; cursor: pointer;">Download All Data (CSV)</button>
+        <button id="clear-data" style="margin-top: 20px; margin-left: 10px; background-color: #f44336; color: white; border: none; padding: 10px 15px; border-radius: 4px; cursor: pointer;">Clear All Data</button>
+    </div><!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
