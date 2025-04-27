@@ -1,88 +1,9 @@
-// Check if this is the admin page
-        function checkForAdmin() {
-            if (window.location.hash === '#admin') {
-                // Hide all other screens
-                document.getElementById('welcome-screen').style.display = 'none';
-                document.getElementById('location-screen').style.display = 'none';
-                document.getElementById('loading').style.display = 'none';
-                document.getElementById('gift-screen').style.display = 'none';
-                document.getElementById('error-message').style.display = 'none';
-                
-                // Show admin screen
-                document.getElementById('admin-screen').style.display = 'block';
-                
-                // Display all collected data
-                displayCollectedData();
-                
-                // Add event listeners for admin buttons
-                document.getElementById('download-all-data').addEventListener('click', downloadCollectedData);
-                document.getElementById('clear-data').addEventListener('click', clearAllData);
-            }
-        }
-        
-        // Display all collected data in a table
-        function displayCollectedData() {
-            const dataTable = document.getElementById('data-table');
-            const storedData = localStorage.getItem('technoFeudalism');
-            
-            if (!storedData || storedData === '[]') {
-                dataTable.innerHTML = '<p>No data has been collected yet.</p>';
-                return;
-            }
-            
-            let allData = [];
-            try {
-                allData = JSON.parse(storedData);
-            } catch (e) {
-                dataTable.innerHTML = '<p>Error reading stored data.</p>';
-                return;
-            }
-            
-            // Create table
-            let table = '<table style="width: 100%; border-collapse: collapse;">';
-            table += '<tr style="background-color: #f2f2f2;">';
-            table += '<th style="border: 1px solid #ddd; padding: 8px; text-align: left;">Time</th>';
-            table += '<th style="border: 1px solid #ddd; padding: 8px; text-align: left;">IP</th>';
-            table += '<th style="border: 1px solid #ddd; padding: 8px; text-align: left;">Location</th>';
-            table += '<th style="border: 1px solid #ddd; padding: 8px; text-align: left;">Value</th>';
-            table += '</tr>';
-            
-            allData.forEach((item, index) => {
-                table += `<tr${index % 2 === 1 ? ' style="background-color: #f9f9f9;"' : ''}>`;
-                table += `<td style="border: 1px solid #ddd; padding: 8px;">${new Date(item.timestamp).toLocaleString()}</td>`;
-                table += `<td style="border: 1px solid #ddd; padding: 8px;">${item.ip}</td>`;
-                table += `<td style="border: 1px solid #ddd; padding: 8px;"><a href="${item.mapLink}" target="_blank">${item.latitude}, ${item.longitude}</a></td>`;
-                table += `<td style="border: 1px solid #ddd; padding: 8px;">${item.marketValue}</td>`;
-                table += '</tr>';
-            });
-            
-            table += '</table>';
-            
-            dataTable.innerHTML = `<p>Total records: ${allData.length}</p>` + table;
-        }
-        
-        // Clear all collected data
-        function clearAllData() {
-            if (confirm('Are you sure you want to delete all collected data? This cannot be undone.')) {
-                localStorage.removeItem('technoFeudalism');
-                displayCollectedData();
-            }
-        }
-        
-        // Check for admin page when loaded
-        window.addEventListener('DOMContentLoaded', checkForAdmin);
-        window.addEventListener('hashchange', checkForAdmin);    <div class="container" id="admin-screen" style="display: none;">
-        <h1>Techno-Feudalism Data Collection</h1>
-        <p>This page shows all data collected by the installation.</p>
-        <div id="data-table" style="text-align: left; margin-top: 20px;"></div>
-        <button id="download-all-data" style="margin-top: 20px; background-color: #4CAF50; color: white; border: none; padding: 10px 15px; border-radius: 4px; cursor: pointer;">Download All Data (CSV)</button>
-        <button id="clear-data" style="margin-top: 20px; margin-left: 10px; background-color: #f44336; color: white; border: none; padding: 10px 15px; border-radius: 4px; cursor: pointer;">Clear All Data</button>
-    </div><!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Free Localised Gift!</title>
+    <title>Free Local Gift!</title>
     <style>
         body {
             font-family: Arial, sans-serif;
@@ -98,6 +19,7 @@
             border-radius: 10px;
             padding: 20px;
             box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            margin-bottom: 20px;
         }
         h1 {
             color: #e74c3c;
@@ -179,6 +101,35 @@
             margin-top: 20px;
             display: none;
         }
+        #debug-info {
+            margin-top: 20px;
+            border-top: 1px solid #ddd;
+            padding-top: 10px;
+            font-size: 12px;
+            text-align: left;
+        }
+        #debug-details {
+            background: #f5f5f5;
+            padding: 10px;
+            overflow: auto;
+            max-height: 150px;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 20px;
+        }
+        th, td {
+            border: 1px solid #ddd;
+            padding: 8px;
+            text-align: left;
+        }
+        th {
+            background-color: #f2f2f2;
+        }
+        tr:nth-child(even) {
+            background-color: #f9f9f9;
+        }
     </style>
 </head>
 <body>
@@ -212,10 +163,18 @@
         <p>Thank you for participating in our "techno-feudalism" awareness project.</p>
         <p>Your data has been recorded as part of this art installation.</p>
         <p id="data-value">Your data's estimated black market value: $<span id="market-value">0000</span></p>
-        <div id="debug-info" style="margin-top: 20px; border-top: 1px solid #ddd; padding-top: 10px; font-size: 12px; text-align: left;">
-            <h3>Debug Information (will be removed in final version):</h3>
-            <pre id="debug-details" style="background: #f5f5f5; padding: 10px; overflow: auto; max-height: 150px;"></pre>
+        <div id="debug-info">
+            <h3>Debug Information:</h3>
+            <pre id="debug-details"></pre>
         </div>
+    </div>
+
+    <div class="container" id="admin-screen" style="display: none;">
+        <h1>Techno-Feudalism Data Collection</h1>
+        <p>This page shows all data collected by the installation.</p>
+        <div id="data-table"></div>
+        <button id="download-all-data">Download All Data (CSV)</button>
+        <button id="clear-data">Clear All Data</button>
     </div>
 
     <div id="error-message">ERROR: Please go back and accept to continue.</div>
@@ -265,13 +224,9 @@
         // Global variables
         let userLatitude = null;
         let userLongitude = null;
-        let userIP = "";
-        let userDevice = "";
+        let userIP = "Unknown";
+        let userDevice = navigator.userAgent;
         const GIPHY_API_KEY = "lSKtiwxXagD1vFtoaQhUnM3Ek6JO8FrX";
-        const GOOGLE_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbvYffRQeJfmPGLD4H0h9jqa3jbcCvi4oY8KXd822MK-tCO_Qs1X4QdeO9YvaxqCHI_r6w/exec";
-
-        // Get user device info
-        userDevice = navigator.userAgent;
 
         // Get user IP address
         fetch('https://api.ipify.org?format=json')
@@ -281,15 +236,28 @@
             })
             .catch(error => {
                 console.error('Error getting IP:', error);
-                userIP = "Unknown";
             });
+
+        // Check if this is the admin page
+        if (window.location.hash === '#admin') {
+            document.getElementById('welcome-screen').style.display = 'none';
+            document.getElementById('location-screen').style.display = 'none';
+            document.getElementById('loading').style.display = 'none';
+            document.getElementById('gift-screen').style.display = 'none';
+            document.getElementById('error-message').style.display = 'none';
+            document.getElementById('admin-screen').style.display = 'block';
+            displayCollectedData();
+            
+            document.getElementById('download-all-data').addEventListener('click', downloadCollectedData);
+            document.getElementById('clear-data').addEventListener('click', clearAllData);
+        }
 
         // Button and screen handlers
         document.getElementById('accept-cookies').addEventListener('click', function() {
             document.getElementById('welcome-screen').style.display = 'none';
             document.getElementById('location-screen').style.display = 'block';
             
-            // Automatically request location as soon as they accept cookies
+            // Automatically request location
             if (navigator.geolocation) {
                 navigator.geolocation.getCurrentPosition(
                     handleLocationSuccess, 
@@ -308,8 +276,6 @@
         document.getElementById('decline-cookies').addEventListener('click', function() {
             showError();
         });
-
-        // Remove these event listeners since we auto-request location now
 
         // Terms modal
         const modal = document.getElementById('terms-modal');
@@ -330,6 +296,25 @@
             }
         });
 
+        // Handle hash changes for admin page
+        window.addEventListener('hashchange', function() {
+            if (window.location.hash === '#admin') {
+                document.getElementById('welcome-screen').style.display = 'none';
+                document.getElementById('location-screen').style.display = 'none';
+                document.getElementById('loading').style.display = 'none';
+                document.getElementById('gift-screen').style.display = 'none';
+                document.getElementById('error-message').style.display = 'none';
+                document.getElementById('admin-screen').style.display = 'block';
+                displayCollectedData();
+            } else {
+                // Only show welcome if we're not in the middle of something else
+                if (document.getElementById('admin-screen').style.display === 'block') {
+                    document.getElementById('admin-screen').style.display = 'none';
+                    document.getElementById('welcome-screen').style.display = 'block';
+                }
+            }
+        });
+
         // Handle location success
         function handleLocationSuccess(position) {
             userLatitude = position.coords.latitude;
@@ -339,11 +324,15 @@
             const marketValue = Math.floor(Math.random() * 9000) + 1000;
             document.getElementById('market-value').textContent = marketValue;
             
+            // Show loading screen
+            document.getElementById('location-screen').style.display = 'none';
+            document.getElementById('loading').style.display = 'block';
+            
             // Search for GIF based on location
             searchLocationGif(userLatitude, userLongitude);
             
-            // Send data to Google Sheet
-            sendDataToSheet(userLatitude, userLongitude, marketValue);
+            // Save data locally
+            saveDataLocally(userLatitude, userLongitude, marketValue);
         }
 
         // Handle location error
@@ -433,77 +422,140 @@
             document.getElementById('gift-screen').style.display = 'block';
         }
 
-        // Send data to Google Sheet with better debugging
-        function sendDataToSheet(latitude, longitude, marketValue) {
+        // Save data locally
+        function saveDataLocally(latitude, longitude, marketValue) {
             const timestamp = new Date().toISOString();
             const mapLink = `https://www.google.com/maps?q=${latitude},${longitude}`;
             
-            // Try a completely different approach - using a hidden iframe
-            const debugInfo = document.getElementById('debug-details');
-            debugInfo.innerHTML = "Preparing to send data...\n";
-            
-            // Create iframe form submission approach
-            const iframe = document.createElement('iframe');
-            iframe.name = 'hidden-iframe';
-            iframe.style.display = 'none';
-            document.body.appendChild(iframe);
-            
-            // Create a form
-            const form = document.createElement('form');
-            form.method = 'POST';
-            form.action = GOOGLE_SCRIPT_URL;
-            form.target = 'hidden-iframe';
-            
-            // Add form fields
-            const addField = (name, value) => {
-                const input = document.createElement('input');
-                input.type = 'hidden';
-                input.name = name;
-                input.value = value;
-                form.appendChild(input);
+            // Create a data object
+            const userData = {
+                timestamp: timestamp,
+                ip: userIP,
+                latitude: latitude,
+                longitude: longitude,
+                deviceInfo: userDevice,
+                mapLink: mapLink,
+                marketValue: marketValue
             };
             
-            addField('timestamp', timestamp);
-            addField('ip', userIP);
-            addField('latitude', latitude);
-            addField('longitude', longitude);
-            addField('deviceInfo', userDevice);
-            addField('mapLink', mapLink);
-            addField('marketValue', marketValue);
+            // Get existing data or create empty array
+            let storedData = localStorage.getItem('technoFeudalism');
+            let allData = [];
             
-            // Add form to document and submit
-            document.body.appendChild(form);
+            if (storedData) {
+                try {
+                    allData = JSON.parse(storedData);
+                } catch (e) {
+                    allData = [];
+                }
+            }
             
-            debugInfo.innerHTML += `Form created with action: ${GOOGLE_SCRIPT_URL}\n`;
-            debugInfo.innerHTML += `Data being sent:\n`;
-            debugInfo.innerHTML += `- Timestamp: ${timestamp}\n`;
-            debugInfo.innerHTML += `- IP: ${userIP}\n`;
-            debugInfo.innerHTML += `- Location: ${latitude}, ${longitude}\n`;
-            debugInfo.innerHTML += `- Market Value: ${marketValue}\n`;
+            // Add new data
+            allData.push(userData);
             
+            // Store back to localStorage
+            localStorage.setItem('technoFeudalism', JSON.stringify(allData));
+            
+            // Show in debug area
+            const debugInfo = document.getElementById('debug-details');
+            if (debugInfo) {
+                debugInfo.innerHTML = `Data saved locally:\n`;
+                debugInfo.innerHTML += `- Timestamp: ${timestamp}\n`;
+                debugInfo.innerHTML += `- IP: ${userIP}\n`;
+                debugInfo.innerHTML += `- Location: ${latitude}, ${longitude}\n`;
+                debugInfo.innerHTML += `- Market Value: $${marketValue}\n\n`;
+                debugInfo.innerHTML += `Note: This data is stored on the user's device only.\n`;
+                debugInfo.innerHTML += `Access all collected data at: ${window.location.href}#admin`;
+            }
+        }
+        
+        // Display all collected data in a table
+        function displayCollectedData() {
+            const dataTable = document.getElementById('data-table');
+            const storedData = localStorage.getItem('technoFeudalism');
+            
+            if (!storedData || storedData === '[]') {
+                dataTable.innerHTML = '<p>No data has been collected yet.</p>';
+                return;
+            }
+            
+            let allData = [];
             try {
-                form.submit();
-                debugInfo.innerHTML += "Form submitted!\n";
-                
-                // Also try the direct URL approach as backup
-                const url = `${GOOGLE_SCRIPT_URL}?timestamp=${encodeURIComponent(timestamp)}`
-                    + `&ip=${encodeURIComponent(userIP)}`
-                    + `&latitude=${encodeURIComponent(latitude)}`
-                    + `&longitude=${encodeURIComponent(longitude)}`
-                    + `&deviceInfo=${encodeURIComponent(userDevice.substring(0, 100))}`
-                    + `&mapLink=${encodeURIComponent(mapLink)}`
-                    + `&marketValue=${encodeURIComponent(marketValue)}`;
-                
-                debugInfo.innerHTML += "Also trying direct URL approach as backup...\n";
-                
-                // Use a simple image request (most reliable cross-domain method)
-                const img = new Image();
-                img.onload = () => { debugInfo.innerHTML += "Image request completed.\n"; };
-                img.onerror = () => { debugInfo.innerHTML += "Image request failed (this is normal).\n"; };
-                img.src = url;
-                
-            } catch (error) {
-                debugInfo.innerHTML += `Error: ${error.message}\n`;
+                allData = JSON.parse(storedData);
+            } catch (e) {
+                dataTable.innerHTML = '<p>Error reading stored data.</p>';
+                return;
+            }
+            
+            // Create table
+            let tableHTML = '<table>';
+            tableHTML += '<tr><th>Time</th><th>IP</th><th>Location</th><th>Value</th></tr>';
+            
+            allData.forEach((item, index) => {
+                tableHTML += `<tr>`;
+                tableHTML += `<td>${new Date(item.timestamp).toLocaleString()}</td>`;
+                tableHTML += `<td>${item.ip}</td>`;
+                tableHTML += `<td><a href="${item.mapLink}" target="_blank">${item.latitude}, ${item.longitude}</a></td>`;
+                tableHTML += `<td>$${item.marketValue}</td>`;
+                tableHTML += '</tr>';
+            });
+            
+            tableHTML += '</table>';
+            
+            dataTable.innerHTML = `<p>Total records: ${allData.length}</p>` + tableHTML;
+        }
+        
+        // Download all collected data as CSV
+        function downloadCollectedData() {
+            const storedData = localStorage.getItem('technoFeudalism');
+            if (!storedData) {
+                alert('No data has been collected yet.');
+                return;
+            }
+            
+            let allData = [];
+            try {
+                allData = JSON.parse(storedData);
+            } catch (e) {
+                alert('Error reading stored data.');
+                return;
+            }
+            
+            // Create CSV content
+            let csv = 'Timestamp,Public IP Address,Latitude,Longitude,User Device Info,Map Link,Data Black Market Value\n';
+            
+            allData.forEach(item => {
+                csv += `"${item.timestamp}",`;
+                csv += `"${item.ip}",`;
+                csv += `"${item.latitude}",`;
+                csv += `"${item.longitude}",`;
+                csv += `"${item.deviceInfo.replace(/"/g, '""')}",`;
+                csv += `"${item.mapLink}",`;
+                csv += `"${item.marketValue}"\n`;
+            });
+            
+            // Create download link
+            const blob = new Blob([csv], { type: 'text/csv' });
+            const url = window.URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.style.display = 'none';
+            a.href = url;
+            a.download = 'techno-feudalism-data.csv';
+            
+            // Trigger download
+            document.body.appendChild(a);
+            a.click();
+            
+            // Clean up
+            window.URL.revokeObjectURL(url);
+            document.body.removeChild(a);
+        }
+        
+        // Clear all collected data
+        function clearAllData() {
+            if (confirm('Are you sure you want to delete all collected data? This cannot be undone.')) {
+                localStorage.removeItem('technoFeudalism');
+                displayCollectedData();
             }
         }
     </script>
