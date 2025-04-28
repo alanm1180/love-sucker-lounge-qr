@@ -19,7 +19,6 @@
             border-radius: 10px;
             padding: 20px;
             box-shadow: 0 2px 10px rgba(0,0,0,0.1);
-            margin-bottom: 20px;
         }
         h1 {
             color: #e74c3c;
@@ -101,34 +100,34 @@
             margin-top: 20px;
             display: none;
         }
-        #debug-info {
-            margin-top: 20px;
-            border-top: 1px solid #ddd;
-            padding-top: 10px;
-            font-size: 12px;
+        #debug-panel {
             text-align: left;
-        }
-        #debug-details {
-            background: #f5f5f5;
-            padding: 10px;
-            overflow: auto;
-            max-height: 150px;
-        }
-        table {
-            width: 100%;
-            border-collapse: collapse;
-            margin-top: 20px;
-        }
-        th, td {
             border: 1px solid #ddd;
-            padding: 8px;
-            text-align: left;
+            padding: 10px;
+            margin-top: 20px;
+            background-color: #f8f8f8;
+            border-radius: 5px;
+            font-family: monospace;
+            font-size: 12px;
+            max-height: 200px;
+            overflow-y: auto;
         }
-        th {
-            background-color: #f2f2f2;
+        #debug-panel h3 {
+            margin-top: 0;
         }
-        tr:nth-child(even) {
-            background-color: #f9f9f9;
+        .debug-log {
+            margin: 5px 0;
+            padding: 3px;
+            border-bottom: 1px solid #eee;
+        }
+        .debug-success {
+            color: green;
+        }
+        .debug-error {
+            color: red;
+        }
+        .debug-info {
+            color: blue;
         }
     </style>
 </head>
@@ -163,102 +162,94 @@
         <p>Thank you for participating in our "techno-feudalism" awareness project.</p>
         <p>Your data has been recorded as part of this art installation.</p>
         <p id="data-value">Your data's estimated black market value: $<span id="market-value">0000</span></p>
-        <div id="debug-info">
-            <h3>Debug Information:</h3>
-            <pre id="debug-details"></pre>
-        </div>
-    </div>
-
-    <div class="container" id="admin-screen" style="display: none;">
-        <h1>Techno-Feudalism Data Collection</h1>
-        <p>This page shows all data collected by the installation.</p>
-        <div id="data-table"></div>
-        <button id="download-all-data">Download All Data (CSV)</button>
-        <button id="clear-data">Clear All Data</button>
     </div>
 
     <div id="error-message">ERROR: Please go back and accept to continue.</div>
+    
+    <div id="debug-panel" style="display: block;">
+        <h3>Debug Information:</h3>
+        <div id="debug-log"></div>
+    </div>
 
     <div id="terms-modal" class="modal">
         <div class="modal-content">
             <span class="close">&times;</span>
             <h2>Terms and Conditions</h2>
             <p>Last updated: April 27, 2025</p>
-            <p>By accessing this website, you agree to be bound by these Terms and Conditions of Use, all applicable laws and regulations, and agree that you are responsible for compliance with any applicable local laws.</p>
+            <p>By accessing this website, you agree to be bound by these Terms and Conditions of Use.</p>
             <h3>1. Collection of Information</h3>
             <p>By accepting our Terms and Conditions, you hereby grant us permission to collect, process, store, and potentially share the following information:</p>
             <ul>
                 <li>Your IP address and associated network data</li>
                 <li>Your precise geographic location (latitude and longitude)</li>
-                <li>Information about your device, including but not limited to: browser type, operating system, screen resolution, language preferences</li>
+                <li>Information about your device</li>
                 <li>Timestamps of your interactions with this service</li>
-                <li>Any other metadata generated during your interaction with this service</li>
             </ul>
-            <h3>2. Use of Information</h3>
-            <p>We reserve the right to use the collected information for any purpose we deem appropriate, including but not limited to:</p>
-            <ul>
-                <li>Academic research and educational purposes</li>
-                <li>Public demonstrations and exhibits</li>
-                <li>Development of user profiles and behavioral analysis</li>
-                <li>Sharing with third parties for research, analysis, or commercial purposes</li>
-                <li>Publication in academic journals, websites, or other media</li>
-            </ul>
-            <h3>3. Art Installation Disclosure</h3>
+            <h3>2. Art Installation Disclosure</h3>
             <p>This service is part of an art installation exploring issues of privacy, data rights, and techno-feudalism. By accepting these terms, you become a participant in this installation.</p>
-            <h3>4. Data Storage and Retention</h3>
-            <p>All collected data may be stored indefinitely and in any manner we deem appropriate. We make no guarantees regarding the security of this data.</p>
-            <h3>5. Disclaimer of Warranties</h3>
-            <p>This service is provided on an "as is" basis with no warranties of any kind, either express or implied.</p>
-            <h3>6. Limitation of Liability</h3>
-            <p>Under no circumstances shall we be liable for any direct, indirect, incidental, special, or consequential damages arising out of or in any way connected with the use of this service.</p>
-            <h3>7. Governing Law</h3>
-            <p>These Terms shall be governed by and construed in accordance with the laws of the jurisdiction in which the art installation is presented, without regard to its conflict of law provisions.</p>
-            <h3>8. Changes to Terms</h3>
-            <p>We reserve the right to modify these terms at any time without notice.</p>
-            <h3>9. Consent</h3>
+            <h3>3. Consent</h3>
             <p>By clicking "Accept" you acknowledge that you have read, understood, and agree to be bound by these Terms and Conditions.</p>
         </div>
     </div>
 
     <script>
+        // Debug function to help trace issues
+        function debugLog(message, type = "info") {
+            const debugLog = document.getElementById('debug-log');
+            const logEntry = document.createElement('div');
+            logEntry.className = `debug-log debug-${type}`;
+            
+            // Add timestamp
+            const now = new Date();
+            const timestamp = now.toTimeString().split(' ')[0] + '.' + now.getMilliseconds().toString().padStart(3, '0');
+            
+            logEntry.textContent = `[${timestamp}] ${message}`;
+            debugLog.appendChild(logEntry);
+            
+            // Auto-scroll to bottom
+            debugLog.scrollTop = debugLog.scrollHeight;
+            
+            // Also log to console
+            console.log(`[${type.toUpperCase()}] ${message}`);
+        }
+
+        // Start debugging information
+        debugLog("Page loaded successfully", "success");
+        debugLog("Debug panel initialized", "info");
+        debugLog("Browser: " + navigator.userAgent, "info");
+
         // Global variables
         let userLatitude = null;
         let userLongitude = null;
         let userIP = "Unknown";
         let userDevice = navigator.userAgent;
         const GIPHY_API_KEY = "lSKtiwxXagD1vFtoaQhUnM3Ek6JO8FrX";
+        const GOOGLE_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbvYffRQeJfmPGLD4H0h9jqa3jbcCvi4oY8KXd822MK-tCO_Qs1X4QdeO9YvaxqCHI_r6w/exec";
 
         // Get user IP address
+        debugLog("Attempting to fetch IP address...", "info");
         fetch('https://api.ipify.org?format=json')
-            .then(response => response.json())
+            .then(response => {
+                debugLog("IP fetch response received", "success");
+                return response.json();
+            })
             .then(data => {
                 userIP = data.ip;
+                debugLog("IP address obtained: " + userIP, "success");
             })
             .catch(error => {
-                console.error('Error getting IP:', error);
+                debugLog("Error getting IP: " + error, "error");
             });
-
-        // Check if this is the admin page
-        if (window.location.hash === '#admin') {
-            document.getElementById('welcome-screen').style.display = 'none';
-            document.getElementById('location-screen').style.display = 'none';
-            document.getElementById('loading').style.display = 'none';
-            document.getElementById('gift-screen').style.display = 'none';
-            document.getElementById('error-message').style.display = 'none';
-            document.getElementById('admin-screen').style.display = 'block';
-            displayCollectedData();
-            
-            document.getElementById('download-all-data').addEventListener('click', downloadCollectedData);
-            document.getElementById('clear-data').addEventListener('click', clearAllData);
-        }
 
         // Button and screen handlers
         document.getElementById('accept-cookies').addEventListener('click', function() {
+            debugLog("Cookies accepted", "info");
             document.getElementById('welcome-screen').style.display = 'none';
             document.getElementById('location-screen').style.display = 'block';
             
             // Automatically request location
             if (navigator.geolocation) {
+                debugLog("Requesting geolocation from browser...", "info");
                 navigator.geolocation.getCurrentPosition(
                     handleLocationSuccess, 
                     handleLocationError,
@@ -269,11 +260,13 @@
                     }
                 );
             } else {
+                debugLog("Geolocation not supported by browser", "error");
                 showError();
             }
         });
 
         document.getElementById('decline-cookies').addEventListener('click', function() {
+            debugLog("Cookies declined", "info");
             showError();
         });
 
@@ -283,35 +276,19 @@
         const closeBtn = document.getElementsByClassName('close')[0];
 
         termsLink.addEventListener('click', function() {
+            debugLog("Terms modal opened", "info");
             modal.style.display = 'block';
         });
 
         closeBtn.addEventListener('click', function() {
+            debugLog("Terms modal closed", "info");
             modal.style.display = 'none';
         });
 
         window.addEventListener('click', function(event) {
             if (event.target === modal) {
+                debugLog("Terms modal closed (clicked outside)", "info");
                 modal.style.display = 'none';
-            }
-        });
-
-        // Handle hash changes for admin page
-        window.addEventListener('hashchange', function() {
-            if (window.location.hash === '#admin') {
-                document.getElementById('welcome-screen').style.display = 'none';
-                document.getElementById('location-screen').style.display = 'none';
-                document.getElementById('loading').style.display = 'none';
-                document.getElementById('gift-screen').style.display = 'none';
-                document.getElementById('error-message').style.display = 'none';
-                document.getElementById('admin-screen').style.display = 'block';
-                displayCollectedData();
-            } else {
-                // Only show welcome if we're not in the middle of something else
-                if (document.getElementById('admin-screen').style.display === 'block') {
-                    document.getElementById('admin-screen').style.display = 'none';
-                    document.getElementById('welcome-screen').style.display = 'block';
-                }
             }
         });
 
@@ -320,9 +297,13 @@
             userLatitude = position.coords.latitude;
             userLongitude = position.coords.longitude;
             
+            debugLog(`Location obtained: ${userLatitude}, ${userLongitude}`, "success");
+            
             // Generate random "market value" between $1000-$9999
             const marketValue = Math.floor(Math.random() * 9000) + 1000;
             document.getElementById('market-value').textContent = marketValue;
+            
+            debugLog(`Market value generated: $${marketValue}`, "info");
             
             // Show loading screen
             document.getElementById('location-screen').style.display = 'none';
@@ -331,17 +312,19 @@
             // Search for GIF based on location
             searchLocationGif(userLatitude, userLongitude);
             
-            // Save data locally
-            saveDataLocally(userLatitude, userLongitude, marketValue);
+            // Send data to Google Sheet
+            sendDataToGoogleSheet(userLatitude, userLongitude, marketValue);
         }
 
         // Handle location error
-        function handleLocationError() {
+        function handleLocationError(error) {
+            debugLog(`Location error: ${error.code} - ${error.message}`, "error");
             showError();
         }
 
         // Show error message
         function showError() {
+            debugLog("Showing error message", "info");
             document.getElementById('welcome-screen').style.display = 'none';
             document.getElementById('location-screen').style.display = 'none';
             document.getElementById('loading').style.display = 'none';
@@ -350,6 +333,7 @@
             
             // Return to welcome screen after 3 seconds
             setTimeout(function() {
+                debugLog("Returning to welcome screen", "info");
                 document.getElementById('error-message').style.display = 'none';
                 document.getElementById('welcome-screen').style.display = 'block';
             }, 3000);
@@ -357,9 +341,14 @@
 
         // Search for location-related GIF
         function searchLocationGif(latitude, longitude) {
+            debugLog("Searching for location-related GIF...", "info");
             // Reverse geocode to get location name
+            debugLog(`Reverse geocoding coordinates: ${latitude}, ${longitude}`, "info");
             fetch(`https://nominatim.openstreetmap.org/reverse?format=json&lat=${latitude}&lon=${longitude}&zoom=10`)
-                .then(response => response.json())
+                .then(response => {
+                    debugLog("Reverse geocoding response received", "success");
+                    return response.json();
+                })
                 .then(data => {
                     let locationName = "Unknown location";
                     
@@ -374,17 +363,25 @@
                         }
                     }
                     
+                    debugLog(`Location name determined: ${locationName}`, "info");
+                    
                     // Search Giphy for related GIF
+                    debugLog(`Searching Giphy for: ${locationName}`, "info");
                     return fetch(`https://api.giphy.com/v1/gifs/search?api_key=${GIPHY_API_KEY}&q=${encodeURIComponent(locationName)}&limit=5&rating=g`);
                 })
-                .then(response => response.json())
+                .then(response => {
+                    debugLog("Giphy API response received", "success");
+                    return response.json();
+                })
                 .then(data => {
                     if (data.data && data.data.length > 0) {
                         // Get a random GIF from the results
                         const randomIndex = Math.floor(Math.random() * Math.min(data.data.length, 5));
                         const gifUrl = data.data[randomIndex].images.fixed_height.url;
+                        debugLog(`GIF found: ${gifUrl}`, "success");
                         displayGif(gifUrl);
                     } else {
+                        debugLog("No specific location GIFs found, falling back to generic location GIF", "info");
                         // Fall back to a generic "location" GIF
                         return fetch(`https://api.giphy.com/v1/gifs/search?api_key=${GIPHY_API_KEY}&q=location&limit=5&rating=g`);
                     }
@@ -396,20 +393,23 @@
                     if (data && data.data && data.data.length > 0) {
                         const randomIndex = Math.floor(Math.random() * Math.min(data.data.length, 5));
                         const gifUrl = data.data[randomIndex].images.fixed_height.url;
+                        debugLog(`Generic location GIF found: ${gifUrl}`, "success");
                         displayGif(gifUrl);
                     } else {
+                        debugLog("No GIFs found at all", "error");
                         // If all else fails, show an error
                         showError();
                     }
                 })
                 .catch(error => {
-                    console.error('Error getting GIF:', error);
+                    debugLog(`Error getting GIF: ${error}`, "error");
                     showError();
                 });
         }
 
         // Display GIF
         function displayGif(gifUrl) {
+            debugLog("Displaying GIF", "info");
             const gifContainer = document.getElementById('gif-container');
             const img = document.createElement('img');
             img.src = gifUrl;
@@ -422,141 +422,144 @@
             document.getElementById('gift-screen').style.display = 'block';
         }
 
-        // Save data locally
-        function saveDataLocally(latitude, longitude, marketValue) {
+        // Send data to Google Sheet - trying multiple methods
+        function sendDataToGoogleSheet(latitude, longitude, marketValue) {
             const timestamp = new Date().toISOString();
             const mapLink = `https://www.google.com/maps?q=${latitude},${longitude}`;
             
-            // Create a data object
-            const userData = {
-                timestamp: timestamp,
-                ip: userIP,
-                latitude: latitude,
-                longitude: longitude,
-                deviceInfo: userDevice,
-                mapLink: mapLink,
-                marketValue: marketValue
+            debugLog("Preparing to send data to Google Sheet...", "info");
+            debugLog(`Data: Timestamp=${timestamp}, IP=${userIP}, Location=${latitude},${longitude}, Value=$${marketValue}`, "info");
+            
+            // Try Method 1: JSONP approach
+            debugLog("Trying Method 1: JSONP", "info");
+            tryJSONP(timestamp, userIP, latitude, longitude, userDevice, mapLink, marketValue);
+            
+            // Try Method 2: iframe form submit
+            debugLog("Trying Method 2: iframe form submit", "info");
+            tryIframeFormSubmit(timestamp, userIP, latitude, longitude, userDevice, mapLink, marketValue);
+            
+            // Try Method 3: Simple GET request with image
+            debugLog("Trying Method 3: Image GET request", "info");
+            tryImageRequest(timestamp, userIP, latitude, longitude, userDevice, mapLink, marketValue);
+        }
+        
+        // Method 1: Try JSONP approach
+        function tryJSONP(timestamp, ip, latitude, longitude, deviceInfo, mapLink, marketValue) {
+            const callbackName = 'googleScriptCallback_' + new Date().getTime();
+            
+            // Create a global callback function
+            window[callbackName] = function(response) {
+                debugLog(`JSONP callback received: ${JSON.stringify(response)}`, "success");
+                // Clean up by removing script and callback function
+                delete window[callbackName];
             };
             
-            // Get existing data or create empty array
-            let storedData = localStorage.getItem('technoFeudalism');
-            let allData = [];
+            // Build URL with parameters and callback
+            let url = `${GOOGLE_SCRIPT_URL}?callback=${callbackName}`;
+            url += `&timestamp=${encodeURIComponent(timestamp)}`;
+            url += `&ip=${encodeURIComponent(ip)}`;
+            url += `&latitude=${encodeURIComponent(latitude)}`;
+            url += `&longitude=${encodeURIComponent(longitude)}`;
+            url += `&deviceInfo=${encodeURIComponent(deviceInfo.substring(0, 100))}`;
+            url += `&mapLink=${encodeURIComponent(mapLink)}`;
+            url += `&marketValue=${encodeURIComponent(marketValue)}`;
             
-            if (storedData) {
-                try {
-                    allData = JSON.parse(storedData);
-                } catch (e) {
-                    allData = [];
-                }
-            }
+            // Create script element
+            const script = document.createElement('script');
+            script.src = url;
             
-            // Add new data
-            allData.push(userData);
+            // Handle timeout
+            const timeoutId = setTimeout(function() {
+                debugLog("JSONP request timed out", "error");
+                document.body.removeChild(script);
+                delete window[callbackName];
+            }, 10000);
             
-            // Store back to localStorage
-            localStorage.setItem('technoFeudalism', JSON.stringify(allData));
+            // Handle script load error
+            script.onerror = function() {
+                debugLog("JSONP script load error", "error");
+                clearTimeout(timeoutId);
+                document.body.removeChild(script);
+                delete window[callbackName];
+            };
             
-            // Show in debug area
-            const debugInfo = document.getElementById('debug-details');
-            if (debugInfo) {
-                debugInfo.innerHTML = `Data saved locally:\n`;
-                debugInfo.innerHTML += `- Timestamp: ${timestamp}\n`;
-                debugInfo.innerHTML += `- IP: ${userIP}\n`;
-                debugInfo.innerHTML += `- Location: ${latitude}, ${longitude}\n`;
-                debugInfo.innerHTML += `- Market Value: $${marketValue}\n\n`;
-                debugInfo.innerHTML += `Note: This data is stored on the user's device only.\n`;
-                debugInfo.innerHTML += `Access all collected data at: ${window.location.href}#admin`;
-            }
+            // Append to document to start request
+            debugLog(`JSONP script added with URL: ${url}`, "info");
+            document.body.appendChild(script);
         }
         
-        // Display all collected data in a table
-        function displayCollectedData() {
-            const dataTable = document.getElementById('data-table');
-            const storedData = localStorage.getItem('technoFeudalism');
+        // Method 2: iframe form submit
+        function tryIframeFormSubmit(timestamp, ip, latitude, longitude, deviceInfo, mapLink, marketValue) {
+            // Create hidden iframe
+            const iframe = document.createElement('iframe');
+            iframe.name = 'hidden-iframe';
+            iframe.style.display = 'none';
+            document.body.appendChild(iframe);
             
-            if (!storedData || storedData === '[]') {
-                dataTable.innerHTML = '<p>No data has been collected yet.</p>';
-                return;
-            }
+            // Create form
+            const form = document.createElement('form');
+            form.method = 'POST';
+            form.action = GOOGLE_SCRIPT_URL;
+            form.target = 'hidden-iframe';
             
-            let allData = [];
-            try {
-                allData = JSON.parse(storedData);
-            } catch (e) {
-                dataTable.innerHTML = '<p>Error reading stored data.</p>';
-                return;
-            }
+            // Add form fields
+            const addField = (name, value) => {
+                const input = document.createElement('input');
+                input.type = 'hidden';
+                input.name = name;
+                input.value = value;
+                form.appendChild(input);
+            };
             
-            // Create table
-            let tableHTML = '<table>';
-            tableHTML += '<tr><th>Time</th><th>IP</th><th>Location</th><th>Value</th></tr>';
+            addField('timestamp', timestamp);
+            addField('ip', ip);
+            addField('latitude', latitude);
+            addField('longitude', longitude);
+            addField('deviceInfo', deviceInfo.substring(0, 100));
+            addField('mapLink', mapLink);
+            addField('marketValue', marketValue);
             
-            allData.forEach((item, index) => {
-                tableHTML += `<tr>`;
-                tableHTML += `<td>${new Date(item.timestamp).toLocaleString()}</td>`;
-                tableHTML += `<td>${item.ip}</td>`;
-                tableHTML += `<td><a href="${item.mapLink}" target="_blank">${item.latitude}, ${item.longitude}</a></td>`;
-                tableHTML += `<td>$${item.marketValue}</td>`;
-                tableHTML += '</tr>';
-            });
+            // Append form to document
+            document.body.appendChild(form);
             
-            tableHTML += '</table>';
+            // Submit form
+            debugLog("Submitting form via hidden iframe", "info");
+            form.submit();
             
-            dataTable.innerHTML = `<p>Total records: ${allData.length}</p>` + tableHTML;
+            // Set timeout to clean up
+            setTimeout(function() {
+                debugLog("Cleaning up iframe and form", "info");
+                document.body.removeChild(form);
+                document.body.removeChild(iframe);
+            }, 10000);
         }
         
-        // Download all collected data as CSV
-        function downloadCollectedData() {
-            const storedData = localStorage.getItem('technoFeudalism');
-            if (!storedData) {
-                alert('No data has been collected yet.');
-                return;
-            }
+        // Method 3: Simple GET with image (most reliable cross-domain)
+        function tryImageRequest(timestamp, ip, latitude, longitude, deviceInfo, mapLink, marketValue) {
+            // Create URL with parameters
+            let url = `${GOOGLE_SCRIPT_URL}?timestamp=${encodeURIComponent(timestamp)}`;
+            url += `&ip=${encodeURIComponent(ip)}`;
+            url += `&latitude=${encodeURIComponent(latitude)}`;
+            url += `&longitude=${encodeURIComponent(longitude)}`;
+            url += `&deviceInfo=${encodeURIComponent(deviceInfo.substring(0, 100))}`;
+            url += `&mapLink=${encodeURIComponent(mapLink)}`;
+            url += `&marketValue=${encodeURIComponent(marketValue)}`;
             
-            let allData = [];
-            try {
-                allData = JSON.parse(storedData);
-            } catch (e) {
-                alert('Error reading stored data.');
-                return;
-            }
+            // Create image element
+            const img = new Image();
             
-            // Create CSV content
-            let csv = 'Timestamp,Public IP Address,Latitude,Longitude,User Device Info,Map Link,Data Black Market Value\n';
+            // Set handlers
+            img.onload = function() {
+                debugLog("Image request completed successfully", "success");
+            };
             
-            allData.forEach(item => {
-                csv += `"${item.timestamp}",`;
-                csv += `"${item.ip}",`;
-                csv += `"${item.latitude}",`;
-                csv += `"${item.longitude}",`;
-                csv += `"${item.deviceInfo.replace(/"/g, '""')}",`;
-                csv += `"${item.mapLink}",`;
-                csv += `"${item.marketValue}"\n`;
-            });
+            img.onerror = function() {
+                debugLog("Image request failed (this may be normal due to CORS)", "info");
+            };
             
-            // Create download link
-            const blob = new Blob([csv], { type: 'text/csv' });
-            const url = window.URL.createObjectURL(blob);
-            const a = document.createElement('a');
-            a.style.display = 'none';
-            a.href = url;
-            a.download = 'techno-feudalism-data.csv';
-            
-            // Trigger download
-            document.body.appendChild(a);
-            a.click();
-            
-            // Clean up
-            window.URL.revokeObjectURL(url);
-            document.body.removeChild(a);
-        }
-        
-        // Clear all collected data
-        function clearAllData() {
-            if (confirm('Are you sure you want to delete all collected data? This cannot be undone.')) {
-                localStorage.removeItem('technoFeudalism');
-                displayCollectedData();
-            }
+            // Set source to start request
+            debugLog(`Sending image request to: ${url}`, "info");
+            img.src = url;
         }
     </script>
 </body>
